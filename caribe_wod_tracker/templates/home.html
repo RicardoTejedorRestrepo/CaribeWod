@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Bienvenido - Fitness App{% endblock %}
+
+{% block content %}
+    <h1>¡Bienvenido a tu Aplicación de Fitness!</h1>
+    <p>Monitorea tus RMs y sigue tu plan de entrenamiento.</p>
+    {% if not user.is_authenticated %}
+        <p>
+            <a href="{% url 'login' %}" style="margin-right:10px;">Inicia Sesión</a>
+            <a href="{% url 'registro' %}">Regístrate</a>
+        </p>
+    {% endif %}
+{% endblock %}

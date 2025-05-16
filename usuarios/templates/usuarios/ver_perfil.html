@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil - {{ user.username }}{% endblock %}
+
+{% block content %}
+    <h2>Perfil de {{ user.username }}</h2>
+    <p><strong>Nombre de Usuario:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Nombre Completo:</strong> {{ perfil.nombre_completo|default:"No especificado" }}</p>
+    <p><strong>Número de Identificación:</strong> {{ perfil.numero_identificacion|default:"No especificado" }}</p>
+    <p><strong>Fecha de Nacimiento:</strong> {{ perfil.fecha_nacimiento|date:"d/m/Y"|default:"No especificada" }}</p>
+
+    <h3>Mis Récords Personales (RM)</h3>
+    <ul>
+        <li><strong>Snatch:</strong> {{ perfil.rm_snatch|default:"N/A" }} kg</li>
+        <li><strong>Clean:</strong> {{ perfil.rm_clean|default:"N/A" }} kg</li>
+        <li><strong>DeadLift:</strong> {{ perfil.rm_deadlift|default:"N/A" }} kg</li>
+        <li><strong>Front Squat:</strong> {{ perfil.rm_front_squat|default:"N/A" }} kg</li>
+        <li><strong>Back Squat:</strong> {{ perfil.rm_back_squat|default:"N/A" }} kg</li>
+        <li><strong>Press de Banca:</strong> {{ perfil.rm_press_banca|default:"N/A" }} kg</li>
+    </ul>
+    <a href="{% url 'editar_perfil' %}" class="button">Editar Perfil y RMs</a>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Plan de Entrenamiento{% endblock %}
+
+{% block content %}
+    <h2>Plan de Entrenamiento Actual</h2>
+    {% if entrenamiento %}
+        <article>
+            <h3>{{ entrenamiento.titulo }}</h3>
+            <p><em>Publicado: {{ entrenamiento.fecha_publicacion|date:"l, d \d\e F \d\e Y" }}</em></p>
+            <div>
+                {{ entrenamiento.descripcion|safe|linebreaksbr }}
+            </div>
+        </article>
+    {% else %}
+        <p>Actualmente no hay un plan de entrenamiento activo. ¡Vuelve pronto!</p>
+    {% endif %}
+{% endblock %}

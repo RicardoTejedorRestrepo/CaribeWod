@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block content %}
+    <h2>Editar Perfil y Récords Personales (RM)</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Guardar Cambios</button>
+    </form>
+    <p><a href="{% url 'ver_perfil' %}">Cancelar y volver al perfil</a></p>
+{% endblock %}
