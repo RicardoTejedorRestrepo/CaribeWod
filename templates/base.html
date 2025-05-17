@@ -1,9 +1,13 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <title>{% block title %}Fitness App{% endblock %}</title>
     <style>
       body {
@@ -15,7 +19,7 @@
       }
       nav {
         background: linear-gradient(135deg, #2c3e50, #3498db);
-        padding: 1rem 2rem;
+        padding: 0.5rem 2rem;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         position: relative;
         z-index: 1000;
@@ -43,7 +47,7 @@
         border-radius: 4px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
       }
 
       nav ul li a:hover {
@@ -85,6 +89,40 @@
 
       .nav-right {
         gap: 1rem;
+      }
+
+      .logo-vertical {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .nav-logo {
+        height: 100px;
+        width: auto;
+        margin: 0;
+      }
+
+      .logo-text {
+        font-size: 1.2rem !important;
+        letter-spacing: 1px;
+        line-height: 1;
+        text-align: center;
+        display: block;
+        margin-top: -5px;
+      }
+
+      .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+      }
+
+      /* Ajustar el texto del logo */
+      .nav-left li:first-child a span {
+        font-size: 1.4rem;
+        letter-spacing: 1px;
       }
 
       /* Iconos (agregar Font Awesome en head) */
@@ -163,9 +201,16 @@
       <ul>
         <div class="nav-left">
           <li>
-            <a href="{% url 'home' %}"
-              ><i class="fas fa-dumbbell"></i>Caribe Wod Tracker</a
-            >
+            <a href="{% url 'home' %}" class="logo-container">
+              <div class="logo-vertical">
+                <img
+                  src="{% static 'images/logo-caribe-wod.png' %}"
+                  alt="Logo Caribe WOD"
+                  class="nav-logo"
+                />
+                <span class="logo-text">CARIBE WOD TRACKER</span>
+              </div>
+            </a>
           </li>
           {% if user.is_authenticated %}
           <li>
