@@ -13,33 +13,82 @@
         color: #333;
       }
       nav {
-        background-color: #333;
-        color: white;
-        padding: 1rem;
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        padding: 1rem 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 1000;
       }
+
       nav ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        list-style: none;
+        padding: 0;
+        margin: 0;
       }
+
       nav ul li {
-        margin-right: 1rem;
+        margin: 0 1.5rem;
+        position: relative;
       }
+
       nav ul li a {
         color: white;
         text-decoration: none;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
+
       nav ul li a:hover {
-        text-decoration: underline;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
       }
+
+      nav ul li a::before {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: #e74c3c;
+        transition: width 0.3s ease;
+      }
+
+      nav ul li a:hover::before {
+        width: 100%;
+      }
+
       .nav-left,
       .nav-right {
         display: flex;
+        gap: 1.5rem;
         align-items: center;
       }
+
+      .nav-left {
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      .nav-left li:first-child a {
+        font-size: 1.4rem;
+        letter-spacing: 1px;
+      }
+
+      .nav-right {
+        gap: 1rem;
+      }
+
+      /* Iconos (agregar Font Awesome en head) */
+      @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+
       .container {
         max-width: 960px;
         margin: 2rem auto;
@@ -110,23 +159,48 @@
   </head>
   <body>
     <nav>
-      <div class="nav-left">
-        <li><a href="{% url 'home' %}">Inicio</a></li>
-        {% if user.is_authenticated %}
-        <li><a href="{% url 'mostrar_entrenamiento' %}">Entrenamiento</a></li>
-        {% endif %}
-      </div>
-      <div class="nav-right">
-        {% if user.is_authenticated %}
-        <li>
-          <a href="{% url 'ver_perfil' %}">Mi Perfil ({{ user.username }})</a>
-        </li>
-        <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
-        {% else %}
-        <li><a href="{% url 'login' %}">Iniciar Sesión</a></li>
-        <li><a href="{% url 'registro' %}">Registrarse</a></li>
-        {% endif %}
-      </div>
+      <ul>
+        <div class="nav-left">
+          <li>
+            <a href="{% url 'home' %}"
+              ><i class="fas fa-dumbbell"></i>Caribe Wod Tracker</a
+            >
+          </li>
+          {% if user.is_authenticated %}
+          <li>
+            <a href="{% url 'mostrar_entrenamiento' %}"
+              ><i class="fas fa-running"></i> Entrenamiento</a
+            >
+          </li>
+          {% endif %}
+        </div>
+
+        <div class="nav-right">
+          {% if user.is_authenticated %}
+          <li>
+            <a href="{% url 'ver_perfil' %}"
+              ><i class="fas fa-user-circle"></i>{{ user.username }}</a
+            >
+          </li>
+          <li>
+            <a href="{% url 'logout' %}"
+              ><i class="fas fa-sign-out-alt"></i> Salir</a
+            >
+          </li>
+          {% else %}
+          <li>
+            <a href="{% url 'login' %}"
+              ><i class="fas fa-sign-in-alt"></i> Ingresar</a
+            >
+          </li>
+          <li>
+            <a href="{% url 'registro' %}"
+              ><i class="fas fa-user-plus"></i> Registro</a
+            >
+          </li>
+          {% endif %}
+        </div>
+      </ul>
     </nav>
     <div class="container">
       {% if messages %}

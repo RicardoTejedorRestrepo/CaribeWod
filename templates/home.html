@@ -1,14 +1,146 @@
 {% extends "base.html" %}
 
-{% block title %}Bienvenido - Fitness App{% endblock %}
+{% block title %}Bienvenido - Caribe Wod Tracker App{% endblock %}
 
 {% block content %}
-    <h1>¡Bienvenido a tu Aplicación de Fitness!</h1>
-    <p>Monitorea tus RMs y sigue tu plan de entrenamiento.</p>
-    {% if not user.is_authenticated %}
-        <p>
-            <a href="{% url 'login' %}" style="margin-right:10px;">Inicia Sesión</a>
-            <a href="{% url 'registro' %}">Regístrate</a>
-        </p>
-    {% endif %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">¡Bienvenido a Caribe Wod Tracker!</h1>
+        <p class="hero-subtitle">Tu compañero perfecto para monitorear RMs y seguir entrenamientos</p>
+        
+        {% if not user.is_authenticated %}
+        <div class="auth-buttons">
+            <a href="{% url 'login' %}" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </a>
+            <a href="{% url 'registro' %}" class="btn btn-outline">
+                <i class="fas fa-user-plus"></i> Registrarse
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="features-container">
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-dumbbell"></i>
+        </div>
+        <h3>Registro de Pesos</h3>
+        <p>Lleva un histórico detallado de tus máximos personales</p>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <h3>Planificación</h3>
+        <p>Organiza y sigue tu plan de entrenamiento semanal</p>
+    </div>
+    
+    <div class="feature-card">
+        <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Progreso</h3>
+        <p>Visualiza tu evolución con gráficos detallados</p>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: white;
+        padding: 4rem 1rem;
+        text-align: center;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        letter-spacing: 1px;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+    }
+
+    .auth-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 25px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: #e74c3c;
+        color: white;
+        border: 2px solid #e74c3c;
+    }
+
+    .btn-primary:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .features-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: #3498db;
+        margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+        color: #666;
+        line-height: 1.6;
+    }
+</style>
 {% endblock %}
