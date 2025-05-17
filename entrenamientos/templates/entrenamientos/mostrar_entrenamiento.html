@@ -3,16 +3,147 @@
 {% block title %}Plan de Entrenamiento{% endblock %}
 
 {% block content %}
-    <h2>Plan de Entrenamiento Actual</h2>
+<div class="training-container">
+    <div class="training-header">
+        <h2 class="section-title">
+            <i class="fas fa-calendar-alt"></i> Plan de Entrenamiento Actual
+        </h2>
+    </div>
+
     {% if entrenamiento %}
-        <article>
-            <h3>{{ entrenamiento.titulo }}</h3>
-            <p><em>Publicado: {{ entrenamiento.fecha_publicacion|date:"l, d \d\e F \d\e Y" }}</em></p>
-            <div>
-                {{ entrenamiento.descripcion|safe|linebreaksbr }}
+    <div class="training-card">
+        <div class="training-card-header">
+            <h3 class="training-title">
+                <i class="fas fa-dumbbell"></i> {{ entrenamiento.titulo }}
+            </h3>
+            <div class="training-meta">
+                <span class="training-date">
+                    <i class="fas fa-clock"></i> 
+                    {{ entrenamiento.fecha_publicacion|date:"l, d \d\e F \d\e Y"|capfirst }}
+                </span>
             </div>
-        </article>
+        </div>
+        
+        <div class="training-content">
+            {{ entrenamiento.descripcion|safe }}
+        </div>
+    </div>
     {% else %}
-        <p>Actualmente no hay un plan de entrenamiento activo. ¡Vuelve pronto!</p>
+    <div class="empty-state">
+        <i class="fas fa-clipboard-list empty-icon"></i>
+        <h3>¡Planificación en progreso!</h3>
+        <p>Actualmente no hay un plan activo. Estamos preparando nuevos contenidos.</p>
+    </div>
     {% endif %}
+</div>
+
+<style>
+    .training-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+
+    .training-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        color: #2c3e50;
+        border-bottom: 3px solid #3498db;
+        padding-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .training-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease;
+    }
+
+    .training-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .training-card-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f4f4f4;
+    }
+
+    .training-title {
+        color: #e74c3c;
+        margin: 0 0 0.5rem 0;
+        font-size: 1.5rem;
+    }
+
+    .training-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .training-date {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .training-content {
+        line-height: 1.7;
+        color: #444;
+    }
+
+    .training-content p {
+        margin-bottom: 1rem;
+    }
+
+    .training-content ul,
+    .training-content ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .training-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        color: #3498db;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #666;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+        .training-card {
+            padding: 1.5rem;
+        }
+        
+        .training-title {
+            font-size: 1.3rem;
+        }
+    }
+</style>
 {% endblock %}
