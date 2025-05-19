@@ -10,195 +10,436 @@
     />
     <title>{% block title %}Fitness App{% endblock %}</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-        color: #333;
-      }
-      nav {
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+          }
+          nav {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            padding: 2rem 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1000;
+          }
+
+          nav ul {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+          }
+
+          nav ul li {
+            margin: 0 1.5rem;
+            position: relative;
+          }
+
+          nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+
+          nav ul li a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+          }
+
+          nav ul li a::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #e74c3c;
+            transition: width 0.3s ease;
+          }
+
+          nav ul li a:hover::before {
+            width: 100%;
+          }
+
+          .nav-left,
+          .nav-right {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+          }
+
+          .nav-left {
+            font-size: 1.2rem;
+            font-weight: 600;
+          }
+
+          .nav-left li:first-child a {
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+          }
+
+          .nav-right {
+            gap: 1rem;
+          }
+
+          .logo-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+          }
+
+          .nav-logo {
+            height: 100px;
+            width: auto;
+            margin: 0;
+          }
+
+          .logo-text {
+            font-size: 1.2rem !important;
+            letter-spacing: 1px;
+            line-height: 1;
+            text-align: center;
+            display: block;
+            margin-top: -5px;
+          }
+
+          .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1px;
+          }
+
+          .logo-mobile-container {
+            display: none; /* Oculto en desktop */
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+          }
+          nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            position: relative;
+          }
+
+          /* Ajustar el texto del logo */
+          .nav-left li:first-child a span {
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+          }
+
+          /* Iconos (agregar Font Awesome en head) */
+          @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+
+          /* Estilos para el menú hamburguesa */
+          .hamburger {
+            display: none;
+            color: white;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+          }
+
+          .nav-links {
+            display: flex;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+          }
+
+          /* Desktop: Ocultar contenedor móvil del logo */
+          @media screen and (min-width: 769px) {
+            .logo-mobile-container {
+              display: none;
+            }
+
+            .nav-links .logo-container {
+              display: flex;
+            }
+          }
+
+          /* Media query para móviles */
+          @media screen and (max-width: 768px) {
+            .hamburger {
+              display: block;
+              position: absolute;
+              right: 40px;
+              top: 15px;
+            }
+
+            .logo-mobile-container {
+              display: block; /* Mostrar solo en móvil */
+            }
+
+            .nav-links .logo-container {
+              display: none; /* Ocultar logo dentro del menú */
+            }
+
+            .hamburger {
+              position: static;
+              order: 2;
+            }
+
+            .nav-links {
+              position: absolute;
+              top: 100%;
+              left: 0;
+              width: 100%;
+              background: linear-gradient(135deg, #2c3e50, #3498db);
+              max-height: 0;
+              transition: max-height 0.3s ease-out;
+              z-index: 1000;
+            }
+
+            .nav-links.active {
+              max-height: 500px;
+            }
+
+            /* Reducir tamaño del logo en móvil */
+            .nav-logo {
+              height: 60px;
+            }
+
+            .logo-mobile-container .logo-text {
+              font-family: "Arial", sans-serif;
+              font-weight: 600; /* Semi-bold */
+              font-size: 1rem; !important;
+              letter-spacing: 1.5px;
+              color: white;
+              text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            }
+
+            .logo-mobile-container .logo-vertical {
+              gap: 3px;
+            }
+
+            .nav-links {
+              flex-direction: column;
+              width: 100%;
+              height: 0;
+              overflow: hidden;
+              padding: 0;
+            }
+
+            .nav-links.active {
+              height: auto;
+              overflow: visible;
+              padding: 1rem 0;
+            }
+
+            .nav-left,
+            .nav-right {
+              flex-direction: column;
+              gap: 0;
+              width: 100%;
+            }
+
+            .nav-left li,
+            .nav-right li {
+              margin: 0.5rem 0;
+              width: 100%;
+              text-align: center;
+            }
+
+            .nav-left li a,
+            .nav-right li a {
+              justify-content: center;
+              padding: 1rem;
+            }
+
+            .logo-container {
+              justify-content: center;
+            }
+          }
+
+          /* Estilos del footer */
+      footer {
         background: linear-gradient(135deg, #2c3e50, #3498db);
-        padding: 0.5rem 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        position: relative;
-        z-index: 1000;
+        color: white;
+        padding: 1rem 1rem;
+        margin-top: auto;
       }
 
-      nav ul {
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        list-style: none;
-        padding: 0;
-        margin: 0;
+        flex-wrap: wrap;
+        gap: 2rem;
       }
 
-      nav ul li {
-        margin: 0 1.5rem;
-        position: relative;
-      }
-
-      nav ul li a {
-        color: white;
-        text-decoration: none;
-        padding: 0.5rem 1rem;
-        transition: all 0.3s ease;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      nav ul li a:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: translateY(-2px);
-      }
-
-      nav ul li a::before {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 0;
-        height: 2px;
-        background: #e74c3c;
-        transition: width 0.3s ease;
-      }
-
-      nav ul li a:hover::before {
-        width: 100%;
-      }
-
-      .nav-left,
-      .nav-right {
-        display: flex;
-        gap: 1.5rem;
-        align-items: center;
-      }
-
-      .nav-left {
-        font-size: 1.2rem;
-        font-weight: 600;
-      }
-
-      .nav-left li:first-child a {
-        font-size: 1.4rem;
-        letter-spacing: 1px;
-      }
-
-      .nav-right {
-        gap: 1rem;
-      }
-
-      .logo-vertical {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-      }
-
-      .nav-logo {
-        height: 100px;
-        width: auto;
-        margin: 0;
-      }
-
-      .logo-text {
-        font-size: 1.2rem !important;
-        letter-spacing: 1px;
-        line-height: 1;
-        text-align: center;
-        display: block;
-        margin-top: -5px;
-      }
-
-      .logo-container {
-        display: flex;
-        align-items: center;
-        gap: 1px;
-      }
-
-      /* Ajustar el texto del logo */
-      .nav-left li:first-child a span {
-        font-size: 1.4rem;
-        letter-spacing: 1px;
-      }
-
-      /* Iconos (agregar Font Awesome en head) */
-      @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
-
-      .container {
-        max-width: 960px;
-        margin: 2rem auto;
+      .footer-section {
+        flex: 1;
+        min-width: 250px;
         padding: 1rem;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
-      .messages {
-        list-style: none;
-        padding: 0;
+
+      .footer-section h3 {
+        color: #e74c3c;
+        text-align: center;
         margin-bottom: 1rem;
+        font-size: 1.2rem;
       }
-      .messages li {
-        padding: 0.75rem;
-        margin-bottom: 0.5rem;
-        border-radius: 4px;
-      }
-      .messages li.success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-      }
-      .messages li.error {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-      }
-      .messages li.info {
-        background-color: #d1ecf1;
-        color: #0c5460;
-        border: 1px solid #bee5eb;
-      }
-      form p {
-        margin-bottom: 10px;
-      }
-      form label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-      }
-      form input[type="text"],
-      form input[type="email"],
-      form input[type="password"],
-      form input[type="date"],
-      form input[type="number"],
-      form select,
-      form textarea {
-        width: calc(100% - 22px);
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      }
-      form button {
-        background-color: #5cb85c;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
+
+      .footer-section h5 {
+        text-align: center;
         font-size: 1rem;
+        margin: 0;
+        padding: 0;
       }
-      form button:hover {
-        background-color: #4cae4c;
+
+      .footer-section h6 {
+        text-align: center;
+        font-size: 0.7rem;
+        margin: 0;
+        padding: 0;
       }
+
+      .footer-section p {
+        margin: 0.5rem 0;
+        line-height: 1;
+        display: flex;
+        justify-content: center;
+      }
+
+      .social-links {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        justify-content: center
+      }
+
+      .social-links a {
+        color: white;
+        font-size: 1.5rem;
+        transition: transform 0.3s ease;
+      }
+
+      .social-links a:hover {
+        transform: translateY(-3px);
+        color: #e74c3c;
+      }
+
+      .fa-phone-alt {
+        margin-right: 0.5rem;
+      }
+
+      @media (max-width: 768px) {
+        .footer-content {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .social-links {
+          justify-content: center;
+        }
+      }
+
+          .container {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          }
+          .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1rem;
+          }
+          .messages li {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+          }
+          .messages li.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+          }
+          .messages li.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+          }
+          .messages li.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+          }
+          form p {
+            margin-bottom: 10px;
+          }
+          form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+          }
+          form input[type="text"],
+          form input[type="email"],
+          form input[type="password"],
+          form input[type="date"],
+          form input[type="number"],
+          form select,
+          form textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+          }
+          form button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+          }
+          form button:hover {
+            background-color: #4cae4c;
+          }
     </style>
   </head>
   <body>
     <nav>
-      <ul>
+      <!-- Logo fuera del menú desplegable -->
+      <div class="logo-mobile-container">
+        <a href="{% url 'home' %}" class="logo-container">
+          <div class="logo-vertical">
+            <img
+              src="{% static 'images/logo-caribe-wod.png' %}"
+              alt="Logo Caribe WOD"
+              class="nav-logo"
+            />
+            <span
+              class="logo-text"
+              style="font-size: 1rem; letter-spacing: 1px"
+            >
+              CARIBE WOD TRACKER
+            </span>
+          </div>
+        </a>
+      </div>
+      <!-- ################################################## -->
+      <div class="hamburger">
+        <i class="fas fa-bars"></i>
+      </div>
+      <ul class="nav-links">
         <div class="nav-left">
           <li>
             <a href="{% url 'home' %}" class="logo-container">
@@ -257,5 +498,54 @@
       </ul>
       {% endif %} {% block content %} {% endblock %}
     </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const hamburger = document.querySelector(".hamburger");
+        const navLinks = document.querySelector(".nav-links");
+
+        hamburger.addEventListener("click", () => {
+          navLinks.classList.toggle("active");
+        });
+      });
+    </script>
+    <footer>
+      <div class="footer-content">
+        <div class="footer-section contacto">
+          <h3>Contacto</h3>
+          <p><i class="fas fa-phone-alt"></i> +57 311 881 6067</p>
+        </div>
+
+        <div class="footer-section descripcion">
+          <h3>Sobre Nosotros</h3>
+          <p>
+            <h5>Principios Fundamentales del Programa:</h5>
+            <br />• Movilidad Diaria: Preparación articular y muscular. <br />•
+            Activación del Core: Fortalecimiento de la zona media. <br />•
+            Fortalecimiento Inteligente: Ejercicios accesorios para equilibrio y
+            fuerza. <br />• Cardio Estratégico: Mejora de base aeróbica y
+            recuperación. <br />• Levantamiento Olímpico Específico: Desarrollo
+            de técnica y fuerza en Snatch, Clean y Jerk con porcentajes. <br />•
+            WODs con Propósito: Desafío de diferentes vías energéticas. <br />•
+            Progresión y Descanso: Progresión gradual y días de descanso
+            vitales. <br />
+          </p>
+          <br /><br />
+          <h6>© 2025 Caribe WOD Tracker-By: Ricardo Tejedor</h6>
+          <h6>Logo e inspiración-By: Juana Mahecha</h6>
+        </div>
+
+        <div class="footer-section redes">
+          <h3>Síguenos</h3>
+          <div class="social-links">
+            <!--<a href="#"><i class="fab fa-facebook"></i></a>-->
+            <a href="https://www.instagram.com/rikrdo_tejedor/"
+              ><i class="fab fa-instagram"></i
+            ></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>
