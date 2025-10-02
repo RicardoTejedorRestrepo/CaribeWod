@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registrar Resultado de WOD - Caribe WOD Tracker{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2 class="form-title">
+            <i class="fas fa-plus-circle"></i> Registrar Nuevo Resultado de WOD
+        </h2>
+        <p class="form-subtitle">Completa los detalles de tu entrenamiento</p>
+    </div>
+    
+    <form method="post" class="result-form">
+        {% csrf_token %}
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="{{ form.fecha_wod.id_for_label }}" class="form-label">
+                    <i class="fas fa-calendar"></i> {{ form.fecha_wod.label }}
+                </label>
+                {{ form.fecha_wod }}
+                {% if form.fecha_wod.errors %}
+                <div class="form-errors">
+                    {{ form.fecha_wod.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.categoria.id_for_label }}" class="form-label">
+                    <i class="fas fa-tag"></i> {{ form.categoria.label }}
+                </label>
+                {{ form.categoria }}
+                {% if form.categoria.errors %}
+                <div class="form-errors">
+                    {{ form.categoria.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-clock"></i> Tiempo del WOD
+                </label>
+                <div class="time-inputs">
+                    <div class="time-group">
+                        {{ form.tiempo_minutos }}
+                        <span class="time-label">Min</span>
+                    </div>
+                    <div class="time-group">
+                        {{ form.tiempo_segundos }}
+                        <span class="time-label">Seg</span>
+                    </div>
+                </div>
+                {% if form.tiempo_minutos.errors or form.tiempo_segundos.errors %}
+                <div class="form-errors">
+                    {{ form.tiempo_minutos.errors }}
+                    {{ form.tiempo_segundos.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.repeticiones.id_for_label }}" class="form-label">
+                    <i class="fas fa-repeat"></i> {{ form.repeticiones.label }}
+                </label>
+                {{ form.repeticiones }}
+                {% if form.repeticiones.errors %}
+                <div class="form-errors">
+                    {{ form.repeticiones.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.peso_total.id_for_label }}" class="form-label">
+                    <i class="fas fa-weight-hanging"></i> {{ form.peso_total.label }}
+                </label>
+                {{ form.peso_total }}
+                {% if form.peso_total.errors %}
+                <div class="form-errors">
+                    {{ form.peso_total.errors }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.unidad_peso.id_for_label }}" class="form-label">
+                    <i class="fas fa-balance-scale"></i> {{ form.unidad_peso.label }}
+                </label>
+                {{ form.unidad_peso }}
+                {% if form.unidad_peso.errors %}
+                <div class="form-errors">
+                    {{ form.unidad_peso.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Campo Público -->
+            <div class="form-group full-width">
+                <div class="public-option">
+                    <label for="id_publico_checkbox" class="checkbox-label">
+                        {{ form.publico }}
+                        <span class="checkmark"></span>
+                        <div class="checkbox-text">
+                            <i class="fas fa-eye"></i>
+                            <strong>{{ form.publico.label }}</strong>
+                            <small>{{ form.publico.help_text }}</small>
+                        </div>
+                    </label>
+                </div>
+                {% if form.publico.errors %}
+                <div class="form-errors">
+                    {{ form.publico.errors }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="form-group full-width">
+            <label for="{{ form.notas.id_for_label }}" class="form-label">
+                <i class="fas fa-sticky-note"></i> {{ form.notas.label }}
+            </label>
+            {{ form.notas }}
+            {% if form.notas.errors %}
+            <div class="form-errors">
+                {{ form.notas.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-actions">
+            <a href="{% url 'lista_resultados' %}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Resultado
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .form-title {
+        color: #FF4500;
+        margin: 0 0 0.5rem;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .form-subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .result-form {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.9rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #FF8C00;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255,140,0,0.15);
+    }
+
+    .time-inputs {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .time-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+    }
+
+    .time-group input {
+        flex: 1;
+    }
+
+    .time-label {
+        color: #666;
+        font-weight: 600;
+        min-width: 40px;
+    }
+
+    /* Estilos para la opción pública */
+    .public-option {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid #FF8C00;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        display: none;
+    }
+
+    .checkmark {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #FF8C00;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+        margin-top: 0.2rem;
+    }
+
+    .checkmark:after {
+        content: "✓";
+        color: white;
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .checkbox-label input[type="checkbox"]:checked + .checkmark {
+        background: #FF8C00;
+    }
+
+    .checkbox-label input[type="checkbox"]:checked + .checkmark:after {
+        opacity: 1;
+    }
+
+    .checkbox-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .checkbox-text strong {
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+
+    .checkbox-text small {
+        color: #666;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .btn {
+        padding: 0.9rem 1.8rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #FF8C00, #FF4500);
+        color: white;
+        box-shadow: 0 4px 10px rgba(255,140,0,0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(255,140,0,0.35);
+    }
+
+    .btn-outline {
+        background: white;
+        color: #FF4500;
+        border: 2px solid #FF4500;
+    }
+
+    .btn-outline:hover {
+        background: #FFF8F0;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(255,69,0,0.15);
+    }
+
+    .form-errors {
+        color: #e74c3c;
+        font-size: 0.85rem;
+        margin-top: 0.4rem;
+        padding: 0.5rem;
+        background: rgba(231, 76, 60, 0.05);
+        border-radius: 5px;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .time-inputs {
+            flex-direction: column;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .checkbox-label {
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mejorar la interactividad del checkbox
+        const publicCheckbox = document.querySelector('#id_publico_checkbox');
+        const checkmark = document.querySelector('.checkmark');
+        
+        if (publicCheckbox && checkmark) {
+            // Sincronizar el estado inicial
+            if (publicCheckbox.checked) {
+                checkmark.style.background = '#FF8C00';
+                checkmark.querySelector(':after').style.opacity = '1';
+            }
+        }
+    });
+</script>
+{% endblock %}

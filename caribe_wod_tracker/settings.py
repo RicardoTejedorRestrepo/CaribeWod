@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'usuarios.apps.UsuariosConfig',
     'entrenamientos.apps.EntrenamientosConfig',
+    'resultados.apps.ResultadosConfig',
 ]
 
 MIDDLEWARE = [
@@ -135,3 +136,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login' # Nombre de la URL para la vista de inicio de sesión
 LOGIN_REDIRECT_URL = 'ver_perfil' # A dónde redirigir después de un inicio de sesión exitoso
 LOGOUT_REDIRECT_URL = 'home' # A dónde redirigir después de cerrar sesión
+
+# Configuración de Email para reseteo de contraseña
+# Para desarrollo, los emails se mostrarán en la consola:
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Para producción, configura tu servidor SMTP:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.example.com'  # Ej: 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'tu_correo@example.com'
+# EMAIL_HOST_PASSWORD = 'tu_contraseña_de_aplicacion' # Si usas Gmail, es una contraseña de aplicación
+# DEFAULT_FROM_EMAIL = 'Caribe WOD Tracker <noreply@caribewodtracker.com>'
+# SERVER_EMAIL = DEFAULT_FROM_EMAIL # Para errores del servidor
+# ADMINS = [('Tu Nombre', 'tu_correo_admin@example.com')] # Para notificaciones de error

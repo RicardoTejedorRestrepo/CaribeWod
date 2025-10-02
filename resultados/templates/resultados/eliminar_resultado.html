@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eliminar Resultado de WOD - Caribe WOD Tracker{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="delete-header">
+            <i class="fas fa-exclamation-triangle warning-icon"></i>
+            <h2 class="delete-title">Eliminar Resultado</h2>
+        </div>
+        
+        <div class="delete-content">
+            <p>¿Estás seguro de que deseas eliminar este resultado?</p>
+            
+            <div class="resultado-info">
+                <div class="info-item">
+                    <span class="info-label">Fecha:</span>
+                    <span class="info-value">{{ resultado.fecha_wod|date:"d/m/Y" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Categoría:</span>
+                    <span class="info-value">{{ resultado.get_categoria_display }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Tiempo:</span>
+                    <span class="info-value">{{ resultado.tiempo_formateado }}</span>
+                </div>
+                {% if resultado.repeticiones %}
+                <div class="info-item">
+                    <span class="info-label">Repeticiones:</span>
+                    <span class="info-value">{{ resultado.repeticiones }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="delete-warning">
+                <i class="fas fa-info-circle"></i>
+                Esta acción no se puede deshacer.
+            </div>
+        </div>
+        
+        <div class="delete-actions">
+            <a href="{% url 'lista_resultados' %}" class="btn btn-outline">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+            <form method="post" class="delete-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .delete-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .delete-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .delete-header {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .warning-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .delete-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .delete-content {
+        padding: 2rem;
+    }
+
+    .delete-content p {
+        color: #2c3e50;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .resultado-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .info-value {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .delete-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        color: #856404;
+        font-weight: 500;
+    }
+
+    .delete-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        padding: 1.5rem 2rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .btn {
+        padding: 0.9rem 1.8rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-outline {
+        background: white;
+        color: #FF4500;
+        border: 2px solid #FF4500;
+    }
+
+    .btn-outline:hover {
+        background: #FFF8F0;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(255,69,0,0.15);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        box-shadow: 0 4px 10px rgba(231, 76, 60, 0.25);
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(231, 76, 60, 0.35);
+    }
+
+    .delete-form {
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .delete-actions {
+            flex-direction: column;
+        }
+        
+        .btn {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}

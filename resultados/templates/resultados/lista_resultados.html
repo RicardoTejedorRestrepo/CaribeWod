@@ -1,0 +1,1351 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mis Resultados de WOD - Caribe WOD Tracker{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <div class="results-header">
+        <h2 class="section-title">
+            <i class="fas fa-list-check"></i> Mis Resultados de WOD
+        </h2>
+        <div class="header-actions">
+            <a href="{% url 'crear_resultado' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Resultado
+            </a>
+            <a href="{% url 'resultados_publicos' %}" class="btn btn-outline">
+                <i class="fas fa-users"></i> Ver Resultados Públicos
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtro de Fecha para Mis Resultados -->
+    <div class="filters-card">
+        <h3 class="filters-title">
+            <i class="fas fa-calendar"></i> Filtrar por Fecha
+        </h3>
+        <form method="get" class="filters-form">
+            <div class="date-filter">
+                <div class="filter-group">
+                    <label for="fecha" class="filter-label">Seleccionar Fecha</label>
+                    <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro }}" 
+                           class="filter-input">
+                </div>
+                <div class="filter-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="todos" value="true" 
+                               {% if ver_todos %}checked{% endif %}>
+                        Mostrar todos mis resultados
+                    </label>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> Aplicar Filtro
+                </button>
+                <a href="{% url 'lista_resultados' %}" class="btn btn-outline">
+                    <i class="fas fa-times"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    {% if resultados %}
+    <div class="results-table-container">
+        <div class="table-info">
+            <p>Mostrando <strong>{{ resultados.count }}</strong> resultado(s) 
+               {% if ver_todos %}de todas las fechas{% else %}de la fecha seleccionada{% endif %}</p>
+        </div>
+        
+        <!-- Vista de Tarjetas para Móvil -->
+        <div class="results-cards-mobile">
+            {% for resultado in resultados %}
+            <div class="result-card">
+                <div class="card-header">
+                    <div class="card-date">{{ resultado.fecha_wod|date:"d/m/Y" }}</div>
+                    <span class="categoria-badge categoria-{{ resultado.categoria|lower }}">
+                        {{ resultado.get_categoria_display }}
+                    </span>
+                </div>
+                
+                <div class="card-content">
+                    <div class="card-stats">
+                        <div class="stat">
+                            <i class="fas fa-clock"></i>
+                            <span>{{ resultado.tiempo_formateado }}</span>
+                        </div>
+                        {% if resultado.repeticiones %}
+                        <div class="stat">
+                            <i class="fas fa-repeat"></i>
+                            <span>{{ resultado.repeticiones }} reps</span>
+                        </div>
+                        {% endif %}
+                        {% if resultado.peso_total %}
+                        <div class="stat">
+                            <i class="fas fa-weight-hanging"></i>
+                            <span>{{ resultado.peso_total }} {{ resultado.get_unidad_peso_display }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if resultado.notas %}
+                    <div class="card-notes">
+                        <button class="btn-notas-mobile" data-notas="{{ resultado.notas }}" 
+                                data-fecha="{{ resultado.fecha_wod|date:'d/m/Y' }}"
+                                data-categoria="{{ resultado.get_categoria_display }}">
+                            <i class="fas fa-sticky-note"></i> Ver notas
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer">
+                    <div class="card-visibility">
+                        {% if resultado.publico %}
+                            <span class="public-badge public-si">
+                                <i class="fas fa-eye"></i> Público
+                            </span>
+                        {% else %}
+                            <span class="public-badge public-no">
+                                <i class="fas fa-eye-slash"></i> Privado
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-actions">
+                        <a href="{% url 'editar_resultado' resultado.pk %}" class="btn-action edit" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'eliminar_resultado' resultado.pk %}" class="btn-action delete" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Vista de Tabla para Escritorio -->
+        <div class="results-table-desktop">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th class="sortable {% if ordenar_por == 'fecha' %}sorted{% endif %}">
+                            <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if ver_todos %}todos=true&{% endif %}ordenar=fecha&dir={% if ordenar_por == 'fecha' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                Fecha
+                                {% if ordenar_por == 'fecha' %}
+                                    <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                {% else %}
+                                    <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th class="sortable {% if ordenar_por == 'categoria' %}sorted{% endif %}">
+                            <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if ver_todos %}todos=true&{% endif %}ordenar=categoria&dir={% if ordenar_por == 'categoria' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                Categoría
+                                {% if ordenar_por == 'categoria' %}
+                                    <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                {% else %}
+                                    <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th class="sortable {% if ordenar_por == 'tiempo' %}sorted{% endif %}">
+                            <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if ver_todos %}todos=true&{% endif %}ordenar=tiempo&dir={% if ordenar_por == 'tiempo' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                Tiempo
+                                {% if ordenar_por == 'tiempo' %}
+                                    <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                {% else %}
+                                    <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th class="sortable {% if ordenar_por == 'repeticiones' %}sorted{% endif %}">
+                            <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if ver_todos %}todos=true&{% endif %}ordenar=repeticiones&dir={% if ordenar_por == 'repeticiones' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                Repeticiones
+                                {% if ordenar_por == 'repeticiones' %}
+                                    <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                {% else %}
+                                    <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th class="sortable {% if ordenar_por == 'peso' %}sorted{% endif %}">
+                            <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if ver_todos %}todos=true&{% endif %}ordenar=peso&dir={% if ordenar_por == 'peso' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                Peso
+                                {% if ordenar_por == 'peso' %}
+                                    <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                {% else %}
+                                    <i class="fas fa-sort sort-icon"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>Público</th>
+                        <th class="notas-header">Notas</th>
+                        <th class="interacciones-header">Interacciones</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for resultado in resultados %}
+                    <tr>
+                        <td>{{ resultado.fecha_wod|date:"d/m/Y" }}</td>
+                        <td>
+                            <span class="categoria-badge categoria-{{ resultado.categoria|lower }}">
+                                {{ resultado.get_categoria_display }}
+                            </span>
+                        </td>
+                        <td>{{ resultado.tiempo_formateado }}</td>
+                        <td>{{ resultado.repeticiones|default:"-" }}</td>
+                        <td>
+                            {% if resultado.peso_total %}
+                                {{ resultado.peso_total }} {{ resultado.get_unidad_peso_display }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if resultado.publico %}
+                                <span class="public-badge public-si" title="Visible para otros usuarios">
+                                    <i class="fas fa-eye"></i> Público
+                                </span>
+                            {% else %}
+                                <span class="public-badge public-no" title="Solo visible para ti">
+                                    <i class="fas fa-eye-slash"></i> Privado
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="notas-cell">
+                            {% if resultado.notas %}
+                                <button class="btn-notas-icon" data-notas="{{ resultado.notas }}" 
+                                        data-fecha="{{ resultado.fecha_wod|date:'d/m/Y' }}"
+                                        data-categoria="{{ resultado.get_categoria_display }}">
+                                    <i class="fas fa-sticky-note"></i>
+                                </button>
+                            {% else %}
+                                <span class="sin-notas">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="interacciones-cell">
+                            <div class="interacciones-info">
+                                {% if resultado.publico %}
+                                <div class="reacciones-section">
+                                    <div class="reacciones-contador">
+                                        <span class="reacciones-total">{{ resultado.total_reacciones }}</span>
+                                        <i class="fas fa-heart reaccion-icon"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="comentarios-section">
+                                    <div class="comentarios-contador">
+                                        <span class="comentarios-total">{{ resultado.comentarios.count }}</span>
+                                        <i class="fas fa-comment comentario-icon"></i>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn-ver-interacciones" 
+                                        data-resultado-id="{{ resultado.id }}"
+                                        title="Ver reacciones y comentarios">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                                {% else %}
+                                <span class="sin-interacciones">-</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="actions">
+                            <a href="{% url 'editar_resultado' resultado.pk %}" class="btn-action edit" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'eliminar_resultado' resultado.pk %}" class="btn-action delete" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% if resultado.publico %}
+                    <tr class="detalles-interacciones-row" id="detalles-{{ resultado.id }}" style="display: none;">
+                        <td colspan="9">
+                            <div class="detalles-interacciones-container">
+                                <div class="detalles-header">
+                                    <h4>Interacciones en tu resultado del {{ resultado.fecha_wod|date:"d/m/Y" }}</h4>
+                                    <button class="btn-cerrar-detalles" data-resultado-id="{{ resultado.id }}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="detalles-content">
+                                    <div class="reacciones-detalles">
+                                        <h5>Reacciones ({{ resultado.total_reacciones }})</h5>
+                                        {% if resultado.reacciones.all %}
+                                        <div class="lista-reacciones">
+                                            {% for reaccion in resultado.reacciones.all %}
+                                            <div class="reaccion-item">
+                                                <span class="reaccion-usuario">{{ reaccion.usuario.username }}</span>
+                                                <span class="reaccion-tipo">{{ reaccion.get_tipo_display }}</span>
+                                                <span class="reaccion-fecha">{{ reaccion.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        <p class="sin-reacciones">Aún no hay reacciones en este resultado.</p>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="comentarios-detalles">
+                                        <h5>Comentarios ({{ resultado.comentarios.count }})</h5>
+                                        {% if resultado.comentarios.all %}
+                                        <div class="lista-comentarios-detalles">
+                                            {% for comentario in resultado.comentarios.all %}
+                                            <div class="comentario-item-detalle">
+                                                <div class="comentario-header">
+                                                    <strong>{{ comentario.usuario.username }}</strong>
+                                                    <span class="comentario-fecha">{{ comentario.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                                                </div>
+                                                <div class="comentario-texto">{{ comentario.texto }}</div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% else %}
+                                        <p class="sin-comentarios">Aún no hay comentarios en este resultado.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-clipboard-list empty-icon"></i>
+        <h3>¡Aún no tienes resultados registrados!</h3>
+        <p>Comienza registrando tu primer resultado de WOD para llevar un seguimiento de tu progreso.</p>
+        <a href="{% url 'crear_resultado' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Registrar Primer Resultado
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para mostrar notas completas -->
+<div id="modal-notas" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-sticky-note"></i> 
+                <span id="modal-titulo">Notas del WOD</span>
+            </h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="notas-info">
+                <div class="notas-meta">
+                    <span id="modal-fecha"></span>
+                    <span id="modal-categoria"></span>
+                </div>
+                <div class="notas-contenido">
+                    <p id="notas-completas"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sistema de Notificaciones -->
+<div id="notification-container" class="notification-container"></div>
+
+<style>
+    /* ESTILOS GENERALES */
+    .results-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .section-title {
+        color: #FF4500;
+        margin: 0;
+        font-size: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filters-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+
+    .filters-title {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .date-filter {
+        display: flex;
+        gap: 2rem;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .filter-input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .filter-options {
+        padding-bottom: 0.8rem;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .table-info {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: #FF8C00;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .empty-state p {
+        color: #666;
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .btn {
+        padding: 0.9rem 1.8rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #FF8C00, #FF4500);
+        color: white;
+        box-shadow: 0 4px 10px rgba(255,140,0,0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(255,140,0,0.35);
+    }
+
+    .btn-outline {
+        background: white;
+        color: #FF4500;
+        border: 2px solid #FF4500;
+    }
+
+    .btn-outline:hover {
+        background: #FF4500;
+        color: white;
+    }
+
+    /* VISTA DE TARJETAS PARA MÓVIL */
+    .results-cards-mobile {
+        display: none;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        border-left: 4px solid #FF4500;
+    }
+
+    .result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .card-date {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+
+    .card-content {
+        margin-bottom: 1rem;
+    }
+
+    .card-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .stat i {
+        color: #FF4500;
+        width: 16px;
+    }
+
+    .card-notes {
+        margin-top: 1rem;
+    }
+
+    .btn-notas-mobile {
+        background: #FF8C00;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-notas-mobile:hover {
+        background: #FF4500;
+        transform: translateY(-1px);
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* VISTA DE TABLA PARA ESCRITORIO */
+    .results-table-desktop {
+        display: block;
+    }
+
+    .results-table {
+        width: 100%;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .results-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .results-table th {
+        background: linear-gradient(135deg, #FF8C00, #FF4500);
+        color: white;
+        padding: 1.2rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 1rem;
+        position: relative;
+    }
+
+    .results-table th.sortable {
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .results-table th.sortable:hover {
+        background: linear-gradient(135deg, #FF9E2C, #FF5722);
+    }
+
+    .results-table th.sorted {
+        background: linear-gradient(135deg, #FF5722, #E65100);
+    }
+
+    .results-table th.sortable a {
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .sort-icon {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+
+    .results-table th.sortable:hover .sort-icon {
+        opacity: 1;
+    }
+
+    .results-table td {
+        padding: 1.2rem;
+        border-bottom: 1px solid #f0f0f0;
+        color: #333;
+        vertical-align: middle;
+    }
+
+    .results-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* BADGES Y ESTILOS DE ESTADO */
+    .categoria-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .categoria-rx {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .categoria-intermedio {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .categoria-principiante {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .public-badge {
+        padding: 0.3rem 0.6rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .public-si {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+
+    .public-no {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    /* NOTAS */
+    .notas-header {
+        width: 80px;
+        text-align: center;
+    }
+
+    .notas-cell {
+        width: 80px;
+        text-align: center;
+        padding: 0.5rem;
+    }
+
+    .btn-notas-icon {
+        background: #FF8C00;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        color: white;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .btn-notas-icon:hover {
+        background: #FF4500;
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .sin-notas {
+        color: #999;
+        font-style: italic;
+    }
+
+    /* INTERACCIONES */
+    .interacciones-header {
+        width: 150px;
+    }
+
+    .interacciones-cell {
+        width: 150px;
+    }
+
+    .interacciones-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .btn-ver-interacciones {
+        background: #9b59b6;
+        color: white;
+        border: none;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-ver-interacciones:hover {
+        background: #8e44ad;
+        transform: translateY(-1px);
+    }
+
+    .sin-interacciones {
+        color: #999;
+        font-style: italic;
+    }
+
+    .reacciones-section, .comentarios-section {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .reacciones-contador, .comentarios-contador {
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+        font-size: 0.85rem;
+    }
+
+    .reaccion-icon {
+        color: #e74c3c;
+    }
+
+    .comentario-icon {
+        color: #3498db;
+    }
+
+    /* DETALLES DE INTERACCIONES */
+    .detalles-interacciones-container {
+        padding: 1.5rem;
+        background: white;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .detalles-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .btn-cerrar-detalles {
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        padding: 0.3rem;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cerrar-detalles:hover {
+        background-color: #f0f0f0;
+        color: #e74c3c;
+    }
+
+    .detalles-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .reacciones-detalles h5, .comentarios-detalles h5 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .lista-reacciones, .lista-comentarios-detalles {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .reaccion-item {
+        padding: 0.8rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .comentario-item-detalle {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 3px solid #3498db;
+    }
+
+    .sin-reacciones, .sin-comentarios {
+        color: #666;
+        text-align: center;
+        padding: 1rem;
+        font-style: italic;
+    }
+
+    /* ACCIONES */
+    .actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .btn-action {
+        padding: 0.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 35px;
+        height: 35px;
+    }
+
+    .btn-action.edit {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .btn-action.delete {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    /* MODAL */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        animation: modalFadeIn 0.3s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: translateY(-50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #FF8C00, #FF4500);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .close-modal {
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .close-modal:hover {
+        color: #ffd700;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .notas-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .notas-meta {
+        display: flex;
+        justify-content: space-between;
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .notas-contenido {
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .notas-contenido p {
+        margin: 0;
+        white-space: pre-wrap;
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #FF8C00;
+    }
+
+    /* NOTIFICACIONES */
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-width: 350px;
+    }
+
+    .notification {
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: slideInRight 0.3s ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .notification.success {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+
+    .notification.error {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+
+    .notification.info {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+    }
+
+    .notification.warning {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+    }
+
+    .btn-cerrar-notification {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1.2rem;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+
+    .btn-cerrar-notification:hover {
+        opacity: 1;
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* MEDIA QUERIES PARA RESPONSIVIDAD */
+    @media (max-width: 768px) {
+        .results-cards-mobile {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .results-table-desktop {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+        }
+
+        .header-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .results-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .filters-card {
+            padding: 1rem;
+        }
+
+        .date-filter {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            min-width: 100%;
+        }
+
+        .filter-actions {
+            justify-content: center;
+        }
+
+        .results-table th.sortable a {
+            flex-direction: column;
+            gap: 0.2rem;
+            text-align: center;
+        }
+
+        .sort-icon {
+            font-size: 0.7rem;
+        }
+
+        .detalles-content {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .notas-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .results-cards-mobile {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .results-table-desktop {
+            display: none;
+        }
+    }
+
+    @media (min-width: 1025px) {
+        .results-cards-mobile {
+            display: none;
+        }
+
+        .results-table-desktop {
+            display: block;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sistema de notificaciones
+        window.showNotification = function(mensaje, tipo = 'info', duracion = 3000) {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${tipo}`;
+            notification.innerHTML = `
+                <span>${mensaje}</span>
+                <button class="btn-cerrar-notification">&times;</button>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Configurar botón de cerrar
+            notification.querySelector('.btn-cerrar-notification').addEventListener('click', () => {
+                notification.remove();
+            });
+            
+            // Auto-remover después del tiempo especificado
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, duracion);
+        };
+
+        // Modal functionality
+        const modal = document.getElementById('modal-notas');
+        const closeModal = document.querySelector('.close-modal');
+        const notasCompletas = document.getElementById('notas-completas');
+        const modalTitulo = document.getElementById('modal-titulo');
+        const modalFecha = document.getElementById('modal-fecha');
+        const modalCategoria = document.getElementById('modal-categoria');
+        
+        // Función para abrir modal desde tarjetas móviles
+        document.querySelectorAll('.btn-notas-mobile').forEach(button => {
+            button.addEventListener('click', function() {
+                const notas = this.getAttribute('data-notas');
+                const fecha = this.getAttribute('data-fecha');
+                const categoria = this.getAttribute('data-categoria');
+                
+                notasCompletas.textContent = notas;
+                modalFecha.textContent = 'Fecha: ' + fecha;
+                modalCategoria.textContent = 'Categoría: ' + categoria;
+                modalTitulo.textContent = 'Notas del WOD - ' + fecha;
+                
+                modal.style.display = 'block';
+            });
+        });
+
+        // Función para abrir modal desde tabla escritorio
+        document.querySelectorAll('.btn-notas-icon').forEach(button => {
+            button.addEventListener('click', function() {
+                const notas = this.getAttribute('data-notas');
+                const fecha = this.getAttribute('data-fecha');
+                const categoria = this.getAttribute('data-categoria');
+                
+                notasCompletas.textContent = notas;
+                modalFecha.textContent = 'Fecha: ' + fecha;
+                modalCategoria.textContent = 'Categoría: ' + categoria;
+                modalTitulo.textContent = 'Notas del WOD - ' + fecha;
+                
+                modal.style.display = 'block';
+            });
+        });
+
+        document.querySelectorAll('.btn-ver-interacciones').forEach(button => {
+            button.addEventListener('click', function() {
+                const resultadoId = this.getAttribute('data-resultado-id');
+                toggleDetallesInteracciones(resultadoId);
+            });
+        });
+        
+        document.querySelectorAll('.btn-cerrar-detalles').forEach(button => {
+            button.addEventListener('click', function() {
+                const resultadoId = this.getAttribute('data-resultado-id');
+                cerrarDetallesInteracciones(resultadoId);
+            });
+        });
+        
+        // Cerrar modal
+        closeModal.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+        
+        // Cerrar modal al hacer clic fuera del contenido
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        // Cerrar modal con tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Mejorar experiencia de filtros
+        const fechaInput = document.getElementById('fecha');
+        if (fechaInput) {
+            // Establecer fecha máxima como hoy
+            const today = new Date().toISOString().split('T')[0];
+            fechaInput.max = today;
+            
+            // Mejorar placeholder para móviles
+            if (window.innerWidth <= 768) {
+                fechaInput.placeholder = 'Selecciona fecha';
+            }
+        }
+    });
+
+    function toggleDetallesInteracciones(resultadoId) {
+        const filaDetalles = document.getElementById(`detalles-${resultadoId}`);
+        const todasLasFilas = document.querySelectorAll('.detalles-interacciones-row');
+        
+        // Cerrar todas las demás filas de detalles
+        todasLasFilas.forEach(fila => {
+            if (fila.id !== `detalles-${resultadoId}`) {
+                fila.style.display = 'none';
+            }
+        });
+        
+        // Alternar la fila actual
+        if (filaDetalles.style.display === 'none') {
+            filaDetalles.style.display = 'table-row';
+            // Scroll suave a la sección expandida
+            filaDetalles.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+            filaDetalles.style.display = 'none';
+        }
+    }
+    
+    function cerrarDetallesInteracciones(resultadoId) {
+        const filaDetalles = document.getElementById(`detalles-${resultadoId}`);
+        filaDetalles.style.display = 'none';
+    }
+
+    // Función para mostrar indicadores de carga
+    function showLoading(element) {
+        const originalHTML = element.innerHTML;
+        element.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+        element.disabled = true;
+        return originalHTML;
+    }
+
+    function hideLoading(element, originalHTML) {
+        element.innerHTML = originalHTML;
+        element.disabled = false;
+    }
+</script>
+{% endblock %}

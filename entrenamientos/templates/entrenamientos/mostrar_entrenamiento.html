@@ -170,6 +170,41 @@
         line-height: 1.6;
     }
 
+    .training-badge {
+        background: linear-gradient(135deg, #FF8C00, #FF4500);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 1rem;
+    }
+
+    .content-wrapper ul, .content-wrapper ol {
+        margin: 1rem 0;
+        padding-left: 2rem;
+    }
+
+    .content-wrapper li {
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .training-card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .training-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: linear-gradient(135deg, #FF8C00, #FF4500);
+    }
+
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;

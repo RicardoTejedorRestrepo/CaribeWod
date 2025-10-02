@@ -1,0 +1,670 @@
+<!-- entrenamientos/templates/entrenamientos/calculadora_porcentajes.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Calculadora de Porcentajes - Caribe WOD Tracker{% endblock %}
+
+{% block content %}
+<div class="calculator-container">
+    <div class="calculator-header">
+        <h2 class="section-title">
+            <i class="fas fa-calculator"></i> Calculadora de Porcentajes
+        </h2>
+        <p class="section-subtitle">
+            Calcula los porcentajes de cualquier peso para tu entrenamiento
+        </p>
+    </div>
+
+    <div class="calculator-card">
+        <form method="post" class="calculator-form">
+            {% csrf_token %}
+            
+            {% if error %}
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <div class="input-section">
+                <div class="form-group">
+                    <label for="peso_base" class="form-label">
+                        <i class="fas fa-weight-hanging"></i> Peso Base
+                    </label>
+                    <input type="number" 
+                           name="peso_base" 
+                           id="peso_base" 
+                           class="form-input" 
+                           placeholder="Ej: 100"
+                           step="0.1"
+                           min="0.1"
+                           value="{{ peso_base|default:'' }}"
+                           required>
+                    <small class="form-help">Ingresa el peso base para calcular los porcentajes</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="incremento" class="form-label">
+                        <i class="fas fa-chart-line"></i> Incremento de Porcentaje
+                    </label>
+                    <select name="incremento" id="incremento" class="form-select">
+                        <option value="1" {% if incremento == 1 %}selected{% endif %}>De 1 en 1%</option>
+                        <option value="2" {% if incremento == 2 %}selected{% endif %}>De 2 en 2%</option>
+                        <option value="5" {% if incremento == 5 %}selected{% endif %}>De 5 en 5%</option>
+                        <option value="10" {% if incremento == 10 %}selected{% endif %}>De 10 en 10%</option>
+                    </select>
+                    <small class="form-help">Selecciona cómo quieres que se incrementen los porcentajes</small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-calculator"></i> Calcular Porcentajes
+                </button>
+                <button type="button" class="btn btn-outline" onclick="clearForm()">
+                    <i class="fas fa-eraser"></i> Limpiar
+                </button>
+            </div>
+        </form>
+
+        {% if tabla_porcentajes %}
+        <div class="results-section">
+            <div class="results-header">
+                <h3 class="results-title">
+                    <i class="fas fa-table"></i> Tabla de Porcentajes
+                </h3>
+                <div class="results-info">
+                    <span class="base-weight-info">
+                        Peso base: <strong>{{ peso_base }}</strong>
+                    </span>
+                    <span class="increment-info">
+                        Incremento: <strong>{{ incremento }}%</strong>
+                    </span>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="percentage-table">
+                    <thead>
+                        <tr>
+                            <th class="percentage-col">Porcentaje</th>
+                            <th class="weight-col">Peso</th>
+                            <th class="difference-col">Diferencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in tabla_porcentajes %}
+                        <tr class="{% if item.porcentaje == 100 %}highlight-100{% elif item.porcentaje == 50 %}highlight-50{% endif %}">
+                            <td class="percentage-cell">
+                                <span class="percentage-badge">{{ item.porcentaje }}%</span>
+                            </td>
+                            <td class="weight-cell">
+                                <strong>{{ item.valor }}</strong>
+                                {% if item.es_entero %}
+                                <small class="unit"></small>
+                                {% endif %}
+                            </td>
+                            <td class="difference-cell">
+                                {% if forloop.first %}
+                                -
+                                {% else %}
+                                {% with prev_index=forloop.counter0|add:"-1" %}
+                                +{{ tabla_porcentajes|slice:prev_index|last|stringformat:".2f" }}
+                                {% endwith %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-actions">
+                <button class="btn btn-outline" onclick="exportToCSV()">
+                    <i class="fas fa-download"></i> Exportar CSV
+                </button>
+                <button class="btn btn-outline" onclick="printTable()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Reference Section -->
+    <div class="quick-reference">
+        <h3 class="reference-title">
+            <i class="fas fa-lightbulb"></i> Referencia Rápida
+        </h3>
+        <div class="reference-grid">
+            <div class="reference-card">
+                <div class="ref-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="ref-content">
+                    <h4>Porcentajes Comunes</h4>
+                    <ul>
+                        <li><strong>50%</strong>: Mitad del peso</li>
+                        <li><strong>75%</strong>: Tres cuartos</li>
+                        <li><strong>90%</strong>: Cerca del máximo</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="reference-card">
+                <div class="ref-icon">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <div class="ref-content">
+                    <h4>Para Entrenamiento</h4>
+                    <ul>
+                        <li><strong>60-70%</strong>: Fuerza resistencia</li>
+                        <li><strong>75-85%</strong>: Desarrollo de fuerza</li>
+                        <li><strong>85-95%</strong>: Fuerza máxima</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .calculator-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .calculator-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        color: #FF4500;
+        margin: 0 0 0.5rem;
+        font-size: 2.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+    }
+
+    .section-subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        margin: 0;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .calculator-card {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+
+    .error-message {
+        background: #ffebee;
+        color: #c62828;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #f44336;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        font-weight: 500;
+    }
+
+    .input-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-input, .form-select {
+        width: 100%;
+        padding: 0.9rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .form-input:focus, .form-select:focus {
+        border-color: #FF8C00;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255,140,0,0.15);
+    }
+
+    .form-help {
+        color: #777;
+        font-size: 0.85rem;
+        display: block;
+        margin-top: 0.4rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.9rem 1.8rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #FF8C00, #FF4500);
+        color: white;
+        box-shadow: 0 4px 10px rgba(255,140,0,0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(255,140,0,0.35);
+    }
+
+    .btn-outline {
+        background: white;
+        color: #FF4500;
+        border: 2px solid #FF4500;
+    }
+
+    .btn-outline:hover {
+        background: #FFF8F0;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(255,69,0,0.15);
+    }
+
+    .results-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .results-title {
+        color: #FF8C00;
+        margin: 0;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .results-info {
+        display: flex;
+        gap: 2rem;
+        font-size: 0.95rem;
+        color: #666;
+    }
+
+    .base-weight-info, .increment-info {
+        background: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border-left: 3px solid #FF8C00;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+
+    .percentage-table {
+        width: 100%;
+        background: white;
+        border-collapse: collapse;
+        min-width: 500px;
+    }
+
+    .percentage-table th {
+        background: linear-gradient(135deg, #FF8C00, #FF4500);
+        color: white;
+        padding: 1.2rem;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .percentage-col {
+        width: 35%;
+    }
+
+    .weight-col {
+        width: 35%;
+    }
+
+    .difference-col {
+        width: 30%;
+    }
+
+    .percentage-table td {
+        padding: 1.2rem;
+        text-align: center;
+        border-bottom: 1px solid #f0f0f0;
+        color: #333;
+        transition: background-color 0.3s ease;
+    }
+
+    .percentage-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .percentage-table tr.highlight-100 {
+        background: linear-gradient(135deg, #fff3e0, #ffecb3);
+        font-weight: 600;
+    }
+
+    .percentage-table tr.highlight-50 {
+        background: #f3e5f5;
+    }
+
+    .percentage-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .weight-cell {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .unit {
+        color: #666;
+        font-size: 0.8rem;
+        margin-left: 0.2rem;
+    }
+
+    .difference-cell {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .table-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+
+    .quick-reference {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .reference-title {
+        color: #FF8C00;
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .reference-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .reference-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid #FF8C00;
+        transition: transform 0.3s ease;
+    }
+
+    .reference-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .ref-icon {
+        font-size: 2rem;
+        color: #FF8C00;
+        margin-bottom: 1rem;
+    }
+
+    .ref-content h4 {
+        color: #2c3e50;
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+    }
+
+    .ref-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .ref-content li {
+        padding: 0.3rem 0;
+        color: #555;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .ref-content li:last-child {
+        border-bottom: none;
+    }
+
+    .ref-content strong {
+        color: #FF4500;
+    }
+
+    @media (max-width: 768px) {
+        .calculator-card {
+            padding: 1.5rem;
+        }
+
+        .input-section {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .results-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .results-info {
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .percentage-table th,
+        .percentage-table td {
+            padding: 1rem 0.8rem;
+        }
+
+        .reference-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .table-actions {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .calculator-container {
+            padding: 1rem 0.5rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+        }
+
+        .percentage-table {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-focus en el campo de peso base
+        const pesoBaseInput = document.getElementById('peso_base');
+        if (pesoBaseInput) {
+            pesoBaseInput.focus();
+        }
+
+        // Agregar máscara para números decimales
+        pesoBaseInput.addEventListener('input', function(e) {
+            let value = e.target.value;
+            // Permitir solo números y un punto decimal
+            value = value.replace(/[^0-9.]/g, '');
+            // Permitir solo un punto decimal
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            e.target.value = value;
+        });
+    });
+
+    function clearForm() {
+        document.getElementById('peso_base').value = '';
+        document.getElementById('incremento').value = '1';
+        
+        // Ocultar resultados si están visibles
+        const resultsSection = document.querySelector('.results-section');
+        if (resultsSection) {
+            resultsSection.style.display = 'none';
+        }
+        
+        // Enfocar el campo de peso base
+        document.getElementById('peso_base').focus();
+    }
+
+    function exportToCSV() {
+        const table = document.querySelector('.percentage-table');
+        let csv = [];
+        
+        // Encabezados
+        const headers = [];
+        table.querySelectorAll('th').forEach(th => {
+            headers.push(th.textContent.trim());
+        });
+        csv.push(headers.join(','));
+        
+        // Datos
+        table.querySelectorAll('tbody tr').forEach(tr => {
+            const row = [];
+            tr.querySelectorAll('td').forEach(td => {
+                let text = td.textContent.trim();
+                // Remover "kg" y espacios extra
+                text = text.replace('kg', '').trim();
+                row.push(text);
+            });
+            csv.push(row.join(','));
+        });
+        
+        // Crear y descargar archivo
+        const csvContent = "data:text/csv;charset=utf-8," + csv.join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "porcentajes_calculadora.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function printTable() {
+        const resultsSection = document.querySelector('.results-section');
+        if (resultsSection) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Calculadora de Porcentajes - Caribe WOD Tracker</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                            th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+                            th { background-color: #f0f0f0; }
+                            .highlight-100 { background-color: #fff3e0; }
+                            .highlight-50 { background-color: #f3e5f5; }
+                            @media print { body { margin: 0; } }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>Calculadora de Porcentajes - Caribe WOD Tracker</h2>
+                        ${resultsSection.outerHTML}
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+    }
+
+    // Shortcut keys
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + Enter para calcular
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            document.querySelector('.calculator-form').submit();
+        }
+        
+        // Escape para limpiar
+        if (e.key === 'Escape') {
+            clearForm();
+        }
+    });
+</script>
+{% endblock %}

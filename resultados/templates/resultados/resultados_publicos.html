@@ -1,0 +1,3097 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Resultados Públicos - Caribe WOD Tracker{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <div class="results-header">
+        <h2 class="section-title">
+            <i class="fas fa-users"></i> Resultados Públicos de la Comunidad
+        </h2>
+        <a href="{% url 'lista_resultados' %}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Mis Resultados
+        </a>
+    </div>
+
+    <!-- Filtros y Búsqueda Mejorados -->
+    <div class="filters-card">
+        <h3 class="filters-title">
+            <i class="fas fa-filter"></i> Filtros y Búsqueda Avanzados
+        </h3>
+        
+        <form method="get" class="filters-form" id="filters-form">
+            <div class="filter-grid">
+                <!-- Filtro por Fecha -->
+                <div class="filter-group">
+                    <label for="fecha" class="filter-label">
+                        <i class="fas fa-calendar"></i> Fecha del WOD
+                    </label>
+                    <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro }}" 
+                           class="filter-input" max="{{ today|date:'Y-m-d' }}">
+                    <small class="filter-help">Selecciona una fecha específica</small>
+                </div>
+
+                <!-- Filtro por Categoría -->
+                <div class="filter-group">
+                    <label class="filter-label">
+                        <i class="fas fa-tag"></i> Categoría
+                    </label>
+                    <div class="category-filters">
+                        {% for choice in CATEGORIA_CHOICES %}
+                        <label class="checkbox-label modern-checkbox">
+                            <input type="checkbox" name="categoria" value="{{ choice.0 }}"
+                                   {% if choice.0 in categoria_filtro %}checked{% endif %}>
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text">{{ choice.1 }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Ordenamiento -->
+                <div class="filter-group">
+                    <label for="ordenar" class="filter-label">
+                        <i class="fas fa-sort"></i> Ordenar por
+                    </label>
+                    <select name="ordenar" id="ordenar" class="filter-select">
+                        <option value="-fecha_wod" {% if ordenar_por == '-fecha_wod' %}selected{% endif %}>
+                            📅 Fecha (más reciente)
+                        </option>
+                        <option value="fecha_wod" {% if ordenar_por == 'fecha_wod' %}selected{% endif %}>
+                            📅 Fecha (más antigua)
+                        </option>
+                        <option value="-tiempo" {% if ordenar_por == '-tiempo' %}selected{% endif %}>
+                            ⏱️ Tiempo (mayor a menor)
+                        </option>
+                        <option value="tiempo" {% if ordenar_por == 'tiempo' %}selected{% endif %}>
+                            ⏱️ Tiempo (menor a mayor)
+                        </option>
+                        <option value="-repeticiones" {% if ordenar_por == '-repeticiones' %}selected{% endif %}>
+                            🔄 Repeticiones (mayor a menor)
+                        </option>
+                        <option value="repeticiones" {% if ordenar_por == 'repeticiones' %}selected{% endif %}>
+                            🔄 Repeticiones (menor a mayor)
+                        </option>
+                        <option value="-peso" {% if ordenar_por == '-peso' %}selected{% endif %}>
+                            🏋️ Peso (mayor a menor)
+                        </option>
+                        <option value="peso" {% if ordenar_por == 'peso' %}selected{% endif %}>
+                            🏋️ Peso (menor a mayor)
+                        </option>
+                        <option value="usuario" {% if ordenar_por == 'usuario' %}selected{% endif %}>
+                            👤 Usuario (A-Z)
+                        </option>
+                        <option value="-usuario" {% if ordenar_por == '-usuario' %}selected{% endif %}>
+                            👤 Usuario (Z-A)
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Búsqueda -->
+                <div class="filter-group">
+                    <label for="buscar" class="filter-label">
+                        <i class="fas fa-search"></i> Buscar usuario
+                    </label>
+                    <div class="search-container">
+                        <input type="text" name="buscar" id="buscar" value="{{ buscar }}" 
+                               placeholder="Buscar por nombre de usuario..." class="filter-input search-input">
+                        <button type="button" class="search-clear" id="search-clear" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary" id="apply-filters">
+                    <i class="fas fa-filter"></i> Aplicar Filtros
+                </button>
+                <a href="{% url 'resultados_publicos' %}" class="btn btn-outline">
+                    <i class="fas fa-eraser"></i> Limpiar Todo
+                </a>
+                <button type="button" class="btn btn-secondary" id="toggle-advanced">
+                    <i class="fas fa-cogs"></i> Avanzado
+                </button>
+            </div>
+
+            <!-- Filtros Avanzados (Ocultos inicialmente) -->
+            <div class="advanced-filters" id="advanced-filters" style="display: none;">
+                <div class="advanced-header">
+                    <h4><i class="fas fa-sliders-h"></i> Filtros Avanzados</h4>
+                </div>
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label for="min_reps" class="filter-label">Repeticiones Mínimas</label>
+                        <input type="number" name="min_reps" id="min_reps" min="0" 
+                               class="filter-input" placeholder="Mínimo">
+                    </div>
+                    <div class="filter-group">
+                        <label for="max_reps" class="filter-label">Repeticiones Máximas</label>
+                        <input type="number" name="max_reps" id="max_reps" min="0" 
+                               class="filter-input" placeholder="Máximo">
+                    </div>
+                    <div class="filter-group">
+                        <label for="min_weight" class="filter-label">Peso Mínimo (LB)</label>
+                        <input type="number" name="min_weight" id="min_weight" min="0" step="0.1"
+                               class="filter-input" placeholder="Mínimo">
+                    </div>
+                    <div class="filter-group">
+                        <label for="max_weight" class="filter-label">Peso Máximo (LB)</label>
+                        <input type="number" name="max_weight" id="max_weight" min="0" step="0.1"
+                               class="filter-input" placeholder="Máximo">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if resultados %}
+    <div class="results-content">
+        <div class="results-summary">
+            <div class="summary-card">
+                <i class="fas fa-chart-bar"></i>
+                <div class="summary-content">
+                    <span class="summary-number">{{ resultados.count }}</span>
+                    <span class="summary-label">Resultados Encontrados</span>
+                </div>
+            </div>
+            <div class="summary-card">
+                <i class="fas fa-users"></i>
+                <div class="summary-content">
+                    <span class="summary-number">{{ unique_users }}</span>
+                    <span class="summary-label">Usuarios Únicos</span>
+                </div>
+            </div>
+            <div class="summary-card">
+                <i class="fas fa-trophy"></i>
+                <div class="summary-content">
+                    <span class="summary-number">{{ top_category.0 }}</span>
+                    <span class="summary-label">Categoría Más Popular</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista de Tarjetas para Móvil/Tablet -->
+        <div class="results-cards-mobile">
+            {% for resultado in resultados %}
+            <div class="result-card-public" data-resultado-id="{{ resultado.id }}">
+                <div class="card-header-public">
+                    <div class="user-info-public">
+                        <div class="user-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="user-details">
+                            <strong class="username">{{ resultado.nombre_usuario }}</strong>
+                            <span class="post-date">{{ resultado.fecha_wod|date:"d/m/Y" }}</span>
+                        </div>
+                    </div>
+                    <span class="categoria-badge categoria-{{ resultado.categoria|lower }}">
+                        {{ resultado.get_categoria_display }}
+                    </span>
+                </div>
+                
+                <div class="card-content-public">
+                    <div class="performance-stats">
+                        <div class="performance-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="performance-value">{{ resultado.tiempo_formateado }}</span>
+                            <span class="performance-label">Tiempo</span>
+                        </div>
+                        {% if resultado.repeticiones %}
+                        <div class="performance-item">
+                            <i class="fas fa-repeat"></i>
+                            <span class="performance-value">{{ resultado.repeticiones }}</span>
+                            <span class="performance-label">Reps</span>
+                        </div>
+                        {% endif %}
+                        {% if resultado.peso_para_visualizacion %}
+                        <div class="performance-item">
+                            <i class="fas fa-weight-hanging"></i>
+                            <span class="performance-value">{{ resultado.peso_para_visualizacion|floatformat:1 }}</span>
+                            <span class="performance-label">LB</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if resultado.notas %}
+                    <div class="card-notes-public">
+                        <button class="btn-notas-mobile" data-notas="{{ resultado.notas }}" 
+                                data-fecha="{{ resultado.fecha_wod|date:'d/m/Y' }}"
+                                data-categoria="{{ resultado.get_categoria_display }}"
+                                data-usuario="{{ resultado.nombre_usuario }}">
+                            <i class="fas fa-sticky-note"></i> Ver notas del entrenamiento
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer-public">
+                    <div class="interactions-public">
+                        <div class="interaction-group">
+                            <!-- Reacciones -->
+                            <div class="reaction-section">
+                                <div class="reaction-buttons">
+                                    {% if user.is_authenticated %}
+                                    <button class="btn-reaction {% if resultado.user_has_me_gusta %}active{% endif %}" 
+                                            data-tipo="me_gusta" 
+                                            data-resultado-id="{{ resultado.id }}"
+                                            title="Me Gusta">
+                                        <span class="reaction-emoji">👍</span>
+                                    </button>
+                                    <button class="btn-reaction {% if resultado.user_has_me_encanta %}active{% endif %}" 
+                                            data-tipo="me_encanta" 
+                                            data-resultado-id="{{ resultado.id }}"
+                                            title="Me Encanta">
+                                        <span class="reaction-emoji">🫶</span>
+                                    </button>
+                                    <button class="btn-reaction {% if resultado.user_has_muy_fuerte %}active{% endif %}" 
+                                            data-tipo="muy_fuerte" 
+                                            data-resultado-id="{{ resultado.id }}"
+                                            title="Muy Fuerte">
+                                        <span class="reaction-emoji">💪</span>
+                                    </button>
+                                    <button class="btn-reaction {% if resultado.user_has_por_poco %}active{% endif %}" 
+                                            data-tipo="por_poco" 
+                                            data-resultado-id="{{ resultado.id }}"
+                                            title="Por Poco">
+                                        <span class="reaction-emoji">🤏</span>
+                                    </button>
+                                    {% else %}
+                                    <span class="login-to-react">Inicia sesión para reaccionar</span>
+                                    {% endif %}
+                                </div>
+                                <div class="reaction-count" data-resultado-id="{{ resultado.id }}">
+                                    <i class="fas fa-heart"></i>
+                                    <span class="count">{{ resultado.total_reacciones }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Comentarios -->
+                            <div class="comment-section">
+                                {% if user.is_authenticated %}
+                                <button class="btn-comment-mobile" 
+                                        data-resultado-id="{{ resultado.id }}"
+                                        data-usuario="{{ resultado.nombre_usuario }}">
+                                    <i class="fas fa-comment"></i>
+                                    <span>Comentar</span>
+                                </button>
+                                {% endif %}
+                                <div class="comment-count">
+                                    <i class="fas fa-comments"></i>
+                                    <span class="count">{{ resultado.comentarios.count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de Comentarios para Móvil -->
+                <div class="comments-container-mobile" id="comments-mobile-{{ resultado.id }}" style="display: none;">
+                    <div class="comments-header-mobile">
+                        <h4>Comentarios</h4>
+                        <button class="btn-close-comments" data-resultado-id="{{ resultado.id }}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="comments-list-mobile" id="comments-list-{{ resultado.id }}">
+                        {% for comentario in resultado.comentarios.all %}
+                        <div class="comment-item-mobile" id="comment-{{ comentario.id }}">
+                            <div class="comment-header-mobile">
+                                <strong>{{ comentario.usuario.username }}</strong>
+                                <span class="comment-date">{{ comentario.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                                {% if comentario.usuario == user %}
+                                <button class="btn-delete-comment" 
+                                        data-comentario-id="{{ comentario.id }}"
+                                        title="Eliminar comentario">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            <div class="comment-text-mobile">
+                                {{ comentario.texto }}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="no-comments-mobile">
+                            <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                    <div class="comment-form-mobile">
+                        <form class="form-comment-mobile" data-resultado-id="{{ resultado.id }}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <textarea name="texto" placeholder="Escribe tu comentario..." 
+                                         maxlength="500" class="comment-textarea-mobile"></textarea>
+                            </div>
+                            <div class="form-actions-mobile">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-paper-plane"></i> Publicar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Vista de Tabla para Escritorio -->
+        <div class="results-table-desktop">
+            <div class="table-controls">
+                <div class="table-info">
+                    <p>Mostrando <strong>{{ resultados.count }}</strong> resultado(s) público(s)</p>
+                </div>
+                <div class="view-options">
+                    <button class="btn-view active" data-view="table" title="Vista de tabla">
+                        <i class="fas fa-table"></i>
+                    </button>
+                    <button class="btn-view" data-view="grid" title="Vista de cuadrícula">
+                        <i class="fas fa-th"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-view" id="table-view">
+                <table class="public-results-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable {% if ordenar_por == 'usuario' %}sorted{% endif %}">
+                                <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if categoria_filtro %}{% for cat in categoria_filtro %}categoria={{ cat }}&{% endfor %}{% endif %}{% if buscar %}buscar={{ buscar }}&{% endif %}ordenar=usuario&dir={% if ordenar_por == 'usuario' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                    👤 Usuario
+                                    {% if ordenar_por == 'usuario' %}
+                                        <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                    {% else %}
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="sortable {% if ordenar_por == 'fecha' %}sorted{% endif %}">
+                                <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if categoria_filtro %}{% for cat in categoria_filtro %}categoria={{ cat }}&{% endfor %}{% endif %}{% if buscar %}buscar={{ buscar }}&{% endif %}ordenar=fecha&dir={% if ordenar_por == 'fecha' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                    📅 Fecha
+                                    {% if ordenar_por == 'fecha' %}
+                                        <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                    {% else %}
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="sortable {% if ordenar_por == 'categoria' %}sorted{% endif %}">
+                                <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if categoria_filtro %}{% for cat in categoria_filtro %}categoria={{ cat }}&{% endfor %}{% endif %}{% if buscar %}buscar={{ buscar }}&{% endif %}ordenar=categoria&dir={% if ordenar_por == 'categoria' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                    🏷️ Categoría
+                                    {% if ordenar_por == 'categoria' %}
+                                        <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                    {% else %}
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="sortable {% if ordenar_por == 'tiempo' %}sorted{% endif %}">
+                                <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if categoria_filtro %}{% for cat in categoria_filtro %}categoria={{ cat }}&{% endfor %}{% endif %}{% if buscar %}buscar={{ buscar }}&{% endif %}ordenar=tiempo&dir={% if ordenar_por == 'tiempo' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                    ⏱️ Tiempo
+                                    {% if ordenar_por == 'tiempo' %}
+                                        <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                    {% else %}
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="sortable {% if ordenar_por == 'repeticiones' %}sorted{% endif %}">
+                                <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if categoria_filtro %}{% for cat in categoria_filtro %}categoria={{ cat }}&{% endfor %}{% endif %}{% if buscar %}buscar={{ buscar }}&{% endif %}ordenar=repeticiones&dir={% if ordenar_por == 'repeticiones' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                    🔄 Reps
+                                    {% if ordenar_por == 'repeticiones' %}
+                                        <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                    {% else %}
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="sortable {% if ordenar_por == 'peso' %}sorted{% endif %}">
+                                <a href="?{% if fecha_filtro %}fecha={{ fecha_filtro }}&{% endif %}{% if categoria_filtro %}{% for cat in categoria_filtro %}categoria={{ cat }}&{% endfor %}{% endif %}{% if buscar %}buscar={{ buscar }}&{% endif %}ordenar=peso&dir={% if ordenar_por == 'peso' and direccion == 'asc' %}desc{% else %}asc{% endif %}">
+                                    🏋️ Peso (LB)
+                                    {% if ordenar_por == 'peso' %}
+                                        <i class="fas fa-chevron-{% if direccion == 'asc' %}up{% else %}down{% endif %} sort-icon"></i>
+                                    {% else %}
+                                        <i class="fas fa-sort sort-icon"></i>
+                                    {% endif %}
+                                </a>
+                            </th>
+                            <th class="notas-header">📝 Notas</th>
+                            <th class="interacciones-header">💬 Interacciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for resultado in resultados %}
+                        <tr class="result-row" data-resultado-id="{{ resultado.id }}">
+                            <td class="user-cell">
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="user-details">
+                                        <span class="username">{{ resultado.nombre_usuario }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ resultado.fecha_wod|date:"d/m/Y" }}</td>
+                            <td>
+                                <span class="categoria-badge categoria-{{ resultado.categoria|lower }}">
+                                    {{ resultado.get_categoria_display }}
+                                </span>
+                            </td>
+                            <td>{{ resultado.tiempo_formateado }}</td>
+                            <td>{{ resultado.repeticiones|default:"-" }}</td>
+                            <td>
+                                {% if resultado.peso_para_visualizacion %}
+                                    {{ resultado.peso_para_visualizacion|floatformat:1 }} {{ resultado.unidad_display }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="notas-cell">
+                                {% if resultado.notas %}
+                                    <button class="btn-notas-icon" data-notas="{{ resultado.notas }}" 
+                                            data-fecha="{{ resultado.fecha_wod|date:'d/m/Y' }}"
+                                            data-categoria="{{ resultado.get_categoria_display }}"
+                                            data-usuario="{{ resultado.nombre_usuario }}">
+                                        <i class="fas fa-sticky-note"></i>
+                                    </button>
+                                {% else %}
+                                    <span class="sin-notas">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="interacciones-cell">
+                                <div class="interacciones-info">
+                                    <!-- Reacciones -->
+                                    <div class="reacciones-section">
+                                        <div class="reacciones-contador" 
+                                             data-resultado-id="{{ resultado.id }}">
+                                            <span class="reacciones-total">
+                                                {{ resultado.total_reacciones }}
+                                            </span>
+                                            <i class="fas fa-heart reaccion-icon"></i>
+                                        </div>
+                                        
+                                        <div class="reacciones-botones">
+                                            {% if user.is_authenticated %}
+                                            <button class="btn-reaccion {% if resultado.user_has_me_gusta %}active{% endif %}" 
+                                                data-tipo="me_gusta" 
+                                                data-resultado-id="{{ resultado.id }}"
+                                                title="Me Gusta">
+                                                👍
+                                            </button>
+                                            <button class="btn-reaccion {% if resultado.user_has_me_encanta %}active{% endif %}" 
+                                                data-tipo="me_encanta" 
+                                                data-resultado-id="{{ resultado.id }}"
+                                                title="Me Encanta">
+                                                🫶
+                                            </button>
+                                            <button class="btn-reaccion {% if resultado.user_has_muy_fuerte %}active{% endif %}" 
+                                                data-tipo="muy_fuerte" 
+                                                data-resultado-id="{{ resultado.id }}"
+                                                title="Muy Fuerte">
+                                                💪
+                                            </button>
+                                            <button class="btn-reaccion {% if resultado.user_has_por_poco %}active{% endif %}" 
+                                                data-tipo="por_poco" 
+                                                data-resultado-id="{{ resultado.id }}"
+                                                title="Por Poco">
+                                                🤏
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    
+                                    <!-- Comentarios -->
+                                    <div class="comentarios-section">
+                                        <div class="comentarios-contador">
+                                            <span class="comentarios-total">
+                                                {{ resultado.comentarios.count }}
+                                            </span>
+                                            <i class="fas fa-comment comentario-icon"></i>
+                                        </div>
+                                        
+                                        {% if user.is_authenticated %}
+                                        <button class="btn-comentar" 
+                                                data-resultado-id="{{ resultado.id }}"
+                                                data-usuario="{{ resultado.nombre_usuario }}">
+                                            <i class="fas fa-plus"></i> Comentar
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Sección de Comentarios (oculta inicialmente) -->
+                        <tr class="comentarios-row" id="comentarios-{{ resultado.id }}" style="display: none;">
+                            <td colspan="8">
+                                <div class="comentarios-container">
+                                    <div class="comentarios-header">
+                                        <h4>Comentarios sobre el resultado de {{ resultado.nombre_usuario }}</h4>
+                                        <button class="btn-cerrar-comentarios" data-resultado-id="{{ resultado.id }}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Lista de Comentarios -->
+                                    <div class="lista-comentarios" id="lista-comentarios-{{ resultado.id }}">
+                                        {% for comentario in resultado.comentarios.all %}
+                                        <div class="comentario-item" id="comentario-{{ comentario.id }}">
+                                            <div class="comentario-header">
+                                                <strong>{{ comentario.usuario.username }}</strong>
+                                                <span class="comentario-fecha">
+                                                    {{ comentario.fecha_creacion|date:"d/m/Y H:i" }}
+                                                </span>
+                                                {% if comentario.usuario == user %}
+                                                <button class="btn-eliminar-comentario" 
+                                                        data-comentario-id="{{ comentario.id }}"
+                                                        title="Eliminar comentario">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                            <div class="comentario-texto">
+                                                {{ comentario.texto }}
+                                            </div>
+                                        </div>
+                                        {% empty %}
+                                        <div class="sin-comentarios">
+                                            <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <!-- Formulario para nuevo comentario -->
+                                    {% if user.is_authenticated %}
+                                    <div class="nuevo-comentario">
+                                        <form class="form-comentario" data-resultado-id="{{ resultado.id }}">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                {{ form_comentario.texto }}
+                                            </div>
+                                            <div class="form-actions">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-paper-plane"></i> Publicar
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Vista de Grid para Escritorio -->
+            <div class="grid-view" id="grid-view" style="display: none;">
+                <div class="results-grid">
+                    {% for resultado in resultados %}
+                    <div class="grid-card" data-resultado-id="{{ resultado.id }}">
+                        <div class="grid-header">
+                            <div class="grid-user">
+                                <i class="fas fa-user-circle"></i>
+                                <span class="grid-username">{{ resultado.nombre_usuario }}</span>
+                            </div>
+                            <span class="grid-date">{{ resultado.fecha_wod|date:"d/m/Y" }}</span>
+                        </div>
+                        
+                        <div class="grid-category">
+                            <span class="categoria-badge categoria-{{ resultado.categoria|lower }}">
+                                {{ resultado.get_categoria_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="grid-performance">
+                            <div class="grid-stat">
+                                <i class="fas fa-clock"></i>
+                                <span>{{ resultado.tiempo_formateado }}</span>
+                            </div>
+                            {% if resultado.repeticiones %}
+                            <div class="grid-stat">
+                                <i class="fas fa-repeat"></i>
+                                <span>{{ resultado.repeticiones }} reps</span>
+                            </div>
+                            {% endif %}
+                            {% if resultado.peso_para_visualizacion %}
+                            <div class="grid-stat">
+                                <i class="fas fa-weight-hanging"></i>
+                                <span>{{ resultado.peso_para_visualizacion|floatformat:1 }} LB</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="grid-interactions">
+                            <div class="grid-reactions">
+                                <span class="reaction-count">{{ resultado.total_reacciones }}</span>
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <div class="grid-comments">
+                                <span class="comment-count">{{ resultado.comentarios.count }}</span>
+                                <i class="fas fa-comment"></i>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        {% if resultados.has_other_pages %}
+        <div class="pagination-container">
+            <div class="pagination">
+                {% if resultados.has_previous %}
+                    <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination-btn">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a href="?page={{ resultados.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination-btn">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                {% endif %}
+
+                <span class="pagination-info">
+                    Página {{ resultados.number }} de {{ resultados.paginator.num_pages }}
+                </span>
+
+                {% if resultados.has_next %}
+                    <a href="?page={{ resultados.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination-btn">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ resultados.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="pagination-btn">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-users-slash empty-icon"></i>
+        <h3>No hay resultados públicos para mostrar</h3>
+        <p>No se encontraron resultados que coincidan con los filtros aplicados.</p>
+        <div class="empty-actions">
+            <a href="{% url 'resultados_publicos' %}" class="btn btn-primary">
+                <i class="fas fa-refresh"></i> Ver todos los resultados
+            </a>
+            <a href="{% url 'crear_resultado' %}" class="btn btn-outline">
+                <i class="fas fa-plus"></i> Crear mi primer resultado
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para mostrar notas completas -->
+<div id="modal-notas" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>
+                <i class="fas fa-sticky-note"></i> 
+                <span id="modal-titulo">Notas del WOD</span>
+            </h3>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="notas-info">
+                <div class="notas-meta">
+                    <span id="modal-usuario"></span>
+                    <span id="modal-fecha"></span>
+                    <span id="modal-categoria"></span>
+                </div>
+                <div class="notas-contenido">
+                    <p id="notas-completas"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sistema de Notificaciones -->
+<div id="notification-container" class="notification-container"></div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="loading-overlay">
+    <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Cargando...</p>
+    </div>
+</div>
+
+<style>
+    /* ===== VARIABLES Y ESTILOS BASE ===== */
+    :root {
+        --primary-color: #FF4500;
+        --primary-dark: #E63900;
+        --primary-light: #FF8C00;
+        --secondary-color: #2c3e50;
+        --accent-color: #3498db;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --light-bg: #f8f9fa;
+        --border-color: #e0e0e0;
+        --text-primary: #2c3e50;
+        --text-secondary: #666;
+        --text-light: #999;
+        --shadow-light: 0 4px 20px rgba(0, 0, 0, 0.08);
+        --shadow-medium: 0 6px 25px rgba(0, 0, 0, 0.12);
+        --border-radius: 12px;
+        --transition: all 0.3s ease;
+    }
+
+    .results-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        min-height: 80vh;
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    /* ===== FILTROS MEJORADOS ===== */
+    .filters-card {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        margin-bottom: 2rem;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .filters-title {
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+
+    .filter-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .filter-input, .filter-select {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: var(--transition);
+        background: white;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+        border-color: var(--primary-light);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.15);
+        transform: translateY(-1px);
+    }
+
+    .filter-help {
+        display: block;
+        margin-top: 0.3rem;
+        color: var(--text-light);
+        font-size: 0.8rem;
+    }
+
+    /* Checkboxes Modernos */
+    .modern-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        cursor: pointer;
+        padding: 0.5rem 0;
+        transition: var(--transition);
+        border-radius: 6px;
+        padding: 0.5rem;
+    }
+
+    .modern-checkbox:hover {
+        background: var(--light-bg);
+    }
+
+    .modern-checkbox input[type="checkbox"] {
+        display: none;
+    }
+
+    .modern-checkbox .checkmark {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--primary-light);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+
+    .modern-checkbox .checkmark:after {
+        content: "✓";
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .modern-checkbox input[type="checkbox"]:checked + .checkmark {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .modern-checkbox input[type="checkbox"]:checked + .checkmark:after {
+        opacity: 1;
+    }
+
+    .checkbox-text {
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    /* Búsqueda Mejorada */
+    .search-container {
+        position: relative;
+    }
+
+    .search-input {
+        padding-right: 2.5rem;
+    }
+
+    .search-clear {
+        position: absolute;
+        right: 0.8rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        padding: 0.3rem;
+        border-radius: 50%;
+        transition: var(--transition);
+    }
+
+    .search-clear:hover {
+        background: var(--light-bg);
+        color: var(--danger-color);
+    }
+
+    /* Filtros Avanzados */
+    .advanced-filters {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background: var(--light-bg);
+        border-radius: 8px;
+        border-left: 3px solid var(--accent-color);
+    }
+
+    .advanced-header {
+        margin-bottom: 1rem;
+    }
+
+    .advanced-header h4 {
+        margin: 0;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Botones de Filtro */
+    .filter-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.9rem 1.8rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        white-space: nowrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+        color: white;
+        box-shadow: 0 4px 10px rgba(255, 140, 0, 0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(255, 140, 0, 0.35);
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    }
+
+    .btn-outline {
+        background: white;
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+    }
+
+    .btn-outline:hover {
+        background: #FFF8F0;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(255, 69, 0, 0.15);
+    }
+
+    .btn-secondary {
+        background: var(--light-bg);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+    }
+
+    /* ===== RESUMEN ESTADÍSTICAS ===== */
+    .results-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .summary-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: var(--transition);
+    }
+
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .summary-card i {
+        font-size: 2rem;
+        color: var(--primary-color);
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #FFF8F0, #FFE4CC);
+        border-radius: 10px;
+    }
+
+    .summary-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .summary-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .summary-label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-top: 0.3rem;
+    }
+
+    /* ===== VISTA MÓVIL - TARJETAS ===== */
+    .results-cards-mobile {
+        display: none;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .result-card-public {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        overflow: hidden;
+        transition: var(--transition);
+        border: 1px solid var(--border-color);
+    }
+
+    .result-card-public:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .card-header-public {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .user-info-public {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .user-details {
+        flex: 1;
+    }
+
+    .username {
+        font-weight: 600;
+        color: var(--text-primary);
+        display: block;
+        margin-bottom: 0.3rem;
+    }
+
+    .post-date {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    .card-content-public {
+        padding: 1.5rem;
+    }
+
+    .performance-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .performance-item {
+        text-align: center;
+        padding: 1rem;
+        background: var(--light-bg);
+        border-radius: 8px;
+        transition: var(--transition);
+    }
+
+    .performance-item:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+    }
+
+    .performance-item i {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .performance-value {
+        display: block;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.3rem;
+    }
+
+    .performance-label {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .card-notes-public {
+        margin-top: 1rem;
+    }
+
+    .btn-notas-mobile {
+        background: var(--primary-light);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-notas-mobile:hover {
+        background: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .card-footer-public {
+        padding: 1.5rem;
+        border-top: 1px solid var(--border-color);
+        background: var(--light-bg);
+    }
+
+    .interactions-public {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .interaction-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .reaction-section, .comment-section {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .reaction-buttons {
+        display: flex;
+        gap: 0.3rem;
+    }
+
+    .btn-reaction {
+        background: white;
+        border: 2px solid var(--border-color);
+        border-radius: 20px;
+        padding: 0.5rem 0.8rem;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 1.1rem;
+    }
+
+    .btn-reaction:hover {
+        border-color: var(--primary-light);
+        transform: scale(1.1);
+    }
+
+    .btn-reaction.active {
+        border-color: var(--primary-color);
+        background: #FFF8F0;
+        transform: scale(1.1);
+    }
+
+    .reaction-count, .comment-count {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+    }
+
+    .login-to-react {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        font-style: italic;
+    }
+
+    .btn-comment-mobile {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .btn-comment-mobile:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+    }
+
+    /* Comentarios Móviles */
+    .comments-container-mobile {
+        border-top: 1px solid var(--border-color);
+        background: white;
+    }
+
+    .comments-header-mobile {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .comments-header-mobile h4 {
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .btn-close-comments {
+        background: none;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        padding: 0.3rem;
+        border-radius: 4px;
+        transition: var(--transition);
+    }
+
+    .btn-close-comments:hover {
+        background: var(--light-bg);
+        color: var(--danger-color);
+    }
+
+    .comments-list-mobile {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    .comment-item-mobile {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: var(--light-bg);
+        border-radius: 8px;
+        border-left: 3px solid var(--accent-color);
+    }
+
+    .comment-header-mobile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .comment-header-mobile strong {
+        color: var(--text-primary);
+    }
+
+    .comment-date {
+        color: var(--text-light);
+        font-size: 0.8rem;
+    }
+
+    .btn-delete-comment {
+        background: none;
+        border: none;
+        color: var(--danger-color);
+        cursor: pointer;
+        padding: 0.2rem;
+        border-radius: 4px;
+        transition: var(--transition);
+        opacity: 0.7;
+    }
+
+    .btn-delete-comment:hover {
+        opacity: 1;
+        background: #ffebee;
+    }
+
+    .comment-text-mobile {
+        color: var(--text-primary);
+        line-height: 1.4;
+    }
+
+    .no-comments-mobile {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+    }
+
+    .comment-form-mobile {
+        padding: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .comment-textarea-mobile {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        resize: vertical;
+        min-height: 80px;
+        font-family: inherit;
+    }
+
+    .form-actions-mobile {
+        margin-top: 1rem;
+        text-align: right;
+    }
+
+    /* ===== VISTA ESCRITORIO ===== */
+    .results-table-desktop {
+        display: block;
+    }
+
+    .table-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .table-info {
+        background: var(--light-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .view-options {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-view {
+        background: white;
+        border: 1px solid var(--border-color);
+        padding: 0.6rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: var(--transition);
+        color: var(--text-light);
+    }
+
+    .btn-view:hover {
+        border-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .btn-view.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    /* Tabla */
+    .public-results-table {
+        width: 100%;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        overflow: hidden;
+        border-collapse: collapse;
+    }
+
+    .public-results-table th {
+        background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+        color: white;
+        padding: 1.2rem;
+        text-align: left;
+        font-weight: 600;
+        position: relative;
+        font-size: 0.95rem;
+    }
+
+    .public-results-table th.sortable {
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .public-results-table th.sortable:hover {
+        background: linear-gradient(135deg, #FF9E2C, #FF5722);
+    }
+
+    .public-results-table th.sorted {
+        background: linear-gradient(135deg, #FF5722, #E63900);
+    }
+
+    .public-results-table th.sortable a {
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .sort-icon {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        transition: var(--transition);
+    }
+
+    .public-results-table th.sortable:hover .sort-icon {
+        opacity: 1;
+    }
+
+    .public-results-table td {
+        padding: 1.2rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+
+    .public-results-table tr:hover {
+        background-color: var(--light-bg);
+    }
+
+    /* Celdas Específicas */
+    .user-cell {
+        font-weight: 600;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .notas-cell {
+        width: 80px;
+        text-align: center;
+        padding: 0.5rem;
+    }
+
+    .btn-notas-icon {
+        background: var(--primary-light);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        color: white;
+        font-size: 1.2rem;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .btn-notas-icon:hover {
+        background: var(--primary-color);
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .sin-notas {
+        color: var(--text-light);
+        font-style: italic;
+    }
+
+    /* Interacciones en Tabla */
+    .interacciones-cell {
+        width: 200px;
+        text-align: center;
+        padding: 0.5rem;
+    }
+
+    .interacciones-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .reacciones-section, .comentarios-section {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: var(--transition);
+    }
+
+    .reacciones-section:hover, .comentarios-section:hover {
+        background-color: var(--light-bg);
+    }
+
+    .reacciones-contador, .comentarios-contador {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .reaccion-icon {
+        color: var(--danger-color);
+    }
+
+    .comentario-icon {
+        color: var(--accent-color);
+    }
+
+    .reacciones-botones {
+        display: flex;
+        gap: 0.3rem;
+    }
+
+    .btn-reaccion {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.3rem;
+        border-radius: 6px;
+        transition: var(--transition);
+        opacity: 0.7;
+    }
+
+    .btn-reaccion:hover {
+        opacity: 1;
+        transform: scale(1.2);
+        background-color: var(--light-bg);
+    }
+
+    .btn-reaccion.active {
+        opacity: 1;
+        transform: scale(1.1);
+        background-color: #e3f2fd;
+    }
+
+    .btn-comentar {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .btn-comentar:hover {
+        background: #2980b9;
+        transform: translateY(-1px);
+    }
+
+    /* ===== VISTA GRID ESCRITORIO ===== */
+    .grid-view {
+        display: none;
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .grid-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        padding: 1.5rem;
+        transition: var(--transition);
+        border: 1px solid var(--border-color);
+    }
+
+    .grid-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .grid-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .grid-user {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .grid-date {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    .grid-category {
+        margin-bottom: 1rem;
+    }
+
+    .grid-performance {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .grid-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.8rem;
+        background: var(--light-bg);
+        border-radius: 8px;
+    }
+
+    .grid-stat i {
+        color: var(--primary-color);
+        width: 20px;
+    }
+
+    .grid-interactions {
+        display: flex;
+        justify-content: space-around;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .grid-reactions, .grid-comments {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    /* ===== BADGES Y ESTADOS ===== */
+    .categoria-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .categoria-rx {
+        background: #e3f2fd;
+        color: #1976d2;
+        border: 1px solid #bbdefb;
+    }
+
+    .categoria-intermedio {
+        background: #fff3e0;
+        color: #f57c00;
+        border: 1px solid #ffe0b2;
+    }
+
+    .categoria-principiante {
+        background: #f3e5f5;
+        color: #7b1fa2;
+        border: 1px solid #e1bee7;
+    }
+
+    /* ===== PAGINACIÓN ===== */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+    }
+
+    .pagination-btn {
+        background: var(--light-bg);
+        border: 1px solid var(--border-color);
+        padding: 0.6rem 0.8rem;
+        border-radius: 6px;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+    }
+
+    .pagination-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .pagination-info {
+        padding: 0 1rem;
+        color: var(--text-primary);
+        font-weight: 500;
+    }
+
+    /* ===== ESTADOS VACÍOS ===== */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-light);
+        margin: 2rem 0;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        opacity: 0.7;
+    }
+
+    .empty-state h3 {
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .empty-state p {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+
+    .empty-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* ===== MODALES Y NOTIFICACIONES ===== */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: var(--border-radius);
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        animation: modalFadeIn 0.3s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: translateY(-50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .close-modal {
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: var(--transition);
+        padding: 0.3rem;
+        border-radius: 4px;
+    }
+
+    .close-modal:hover {
+        background: rgba(255,255,255,0.2);
+        color: #ffd700;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .notas-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .notas-meta {
+        display: flex;
+        justify-content: space-between;
+        background: var(--light-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .notas-contenido {
+        line-height: 1.6;
+        color: var(--text-primary);
+    }
+
+    .notas-contenido p {
+        margin: 0;
+        white-space: pre-wrap;
+        background: var(--light-bg);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    /* Sistema de Notificaciones */
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-width: 350px;
+    }
+
+    .notification {
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideInRight 0.3s ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .notification.success {
+        background: linear-gradient(135deg, var(--success-color), #27ae60);
+    }
+
+    .notification.error {
+        background: linear-gradient(135deg, var(--danger-color), #c0392b);
+    }
+
+    .notification.info {
+        background: linear-gradient(135deg, var(--accent-color), #2980b9);
+    }
+
+    .notification.warning {
+        background: linear-gradient(135deg, var(--warning-color), #e67e22);
+    }
+
+    .btn-cerrar-notification {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1.2rem;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+
+    .btn-cerrar-notification:hover {
+        opacity: 1;
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 9999;
+        backdrop-filter: blur(5px);
+    }
+
+    .loading-spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: white;
+    }
+
+    .loading-spinner i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .loading-spinner p {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    /* ===== RESPONSIVE DESIGN ===== */
+    @media (max-width: 768px) {
+        .results-container {
+            padding: 1rem 0.5rem;
+        }
+
+        .results-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+        }
+
+        .filters-card {
+            padding: 1rem;
+        }
+
+        .filter-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .filter-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn {
+            justify-content: center;
+        }
+
+        /* Mostrar tarjetas en móvil */
+        .results-cards-mobile {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .results-table-desktop {
+            display: none;
+        }
+
+        .results-summary {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-card {
+            padding: 1rem;
+        }
+
+        .user-info-public {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .performance-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .interaction-group {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .reaction-section, .comment-section {
+            justify-content: center;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .results-cards-mobile {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .results-table-desktop {
+            display: none;
+        }
+
+        .filter-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 1025px) {
+        .results-cards-mobile {
+            display: none;
+        }
+
+        .results-table-desktop {
+            display: block;
+        }
+    }
+
+    /* Ajustes para tablets grandes */
+    @media (max-width: 1024px) {
+        .public-results-table {
+            font-size: 0.9rem;
+        }
+
+        .public-results-table th,
+        .public-results-table td {
+            padding: 0.8rem;
+        }
+
+        .interacciones-cell {
+            width: 180px;
+        }
+    }
+
+    /* Ajustes para móviles pequeños */
+    @media (max-width: 480px) {
+        .performance-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .reaction-buttons {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .empty-actions {
+            flex-direction: column;
+        }
+
+        .modal-content {
+            width: 95%;
+            margin: 10% auto;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== VARIABLES GLOBALES =====
+    let currentView = 'table';
+    let isLoading = false;
+
+    // ===== SISTEMA DE NOTIFICACIONES =====
+    window.showNotification = function(mensaje, tipo = 'info', duracion = 4000) {
+        const container = document.getElementById('notification-container');
+        const notification = document.createElement('div');
+        notification.className = `notification ${tipo}`;
+        notification.innerHTML = `
+            <span>${mensaje}</span>
+            <button class="btn-cerrar-notification">&times;</button>
+        `;
+        
+        container.appendChild(notification);
+        
+        // Configurar botón de cerrar
+        notification.querySelector('.btn-cerrar-notification').addEventListener('click', () => {
+            notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        });
+        
+        // Auto-remover después del tiempo especificado
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }
+        }, duracion);
+    };
+
+    // ===== SISTEMA DE LOADING =====
+    window.showLoading = function() {
+        if (isLoading) return;
+        isLoading = true;
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.hideLoading = function() {
+        isLoading = false;
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    // ===== MANEJO DE FILTROS AVANZADOS =====
+    const toggleAdvancedBtn = document.getElementById('toggle-advanced');
+    const advancedFilters = document.getElementById('advanced-filters');
+    
+    if (toggleAdvancedBtn && advancedFilters) {
+        toggleAdvancedBtn.addEventListener('click', function() {
+            const isVisible = advancedFilters.style.display === 'block';
+            advancedFilters.style.display = isVisible ? 'none' : 'block';
+            toggleAdvancedBtn.innerHTML = isVisible ? 
+                '<i class="fas fa-cogs"></i> Avanzado' : 
+                '<i class="fas fa-times"></i> Cerrar';
+            toggleAdvancedBtn.classList.toggle('active', !isVisible);
+        });
+    }
+
+    // ===== BÚSQUEDA EN TIEMPO REAL =====
+    const searchInput = document.getElementById('buscar');
+    const searchClear = document.getElementById('search-clear');
+    const filtersForm = document.getElementById('filters-form');
+    
+    if (searchInput && searchClear) {
+        // Mostrar/ocultar botón de limpiar búsqueda
+        searchInput.addEventListener('input', function() {
+            searchClear.style.display = this.value ? 'block' : 'none';
+        });
+        
+        // Limpiar búsqueda
+        searchClear.addEventListener('click', function() {
+            searchInput.value = '';
+            searchClear.style.display = 'none';
+            searchInput.focus();
+        });
+        
+        // Búsqueda en tiempo real (opcional)
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                if (this.value.length >= 3 || this.value.length === 0) {
+                    // Auto-submit después de 800ms si hay 3+ caracteres o se limpió
+                    filtersForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                }
+            }, 800);
+        });
+    }
+
+    // ===== MEJORAS EN FORMULARIO DE FILTROS =====
+    if (filtersForm) {
+        filtersForm.addEventListener('submit', function(e) {
+            showLoading();
+            
+            // Agregar parámetros de filtros avanzados si están visibles
+            if (advancedFilters && advancedFilters.style.display === 'block') {
+                const minReps = document.getElementById('min_reps')?.value;
+                const maxReps = document.getElementById('max_reps')?.value;
+                const minWeight = document.getElementById('min_weight')?.value;
+                const maxWeight = document.getElementById('max_weight')?.value;
+                
+                if (minReps) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'min_reps';
+                    input.value = minReps;
+                    this.appendChild(input);
+                }
+                
+                if (maxReps) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'max_reps';
+                    input.value = maxReps;
+                    this.appendChild(input);
+                }
+                
+                if (minWeight) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'min_weight';
+                    input.value = minWeight;
+                    this.appendChild(input);
+                }
+                
+                if (maxWeight) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'max_weight';
+                    input.value = maxWeight;
+                    this.appendChild(input);
+                }
+            }
+            
+            // El formulario se enviará normalmente
+            setTimeout(hideLoading, 1000);
+        });
+    }
+
+    // ===== VISTAS (TABLA/GRID) =====
+    const viewButtons = document.querySelectorAll('.btn-view');
+    const tableView = document.getElementById('table-view');
+    const gridView = document.getElementById('grid-view');
+    
+    viewButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const viewType = this.getAttribute('data-view');
+            
+            // Actualizar botones activos
+            viewButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Cambiar vista
+            if (viewType === 'table') {
+                tableView.style.display = 'block';
+                gridView.style.display = 'none';
+                currentView = 'table';
+            } else {
+                tableView.style.display = 'none';
+                gridView.style.display = 'block';
+                currentView = 'grid';
+            }
+            
+            // Guardar preferencia en localStorage
+            localStorage.setItem('preferredView', viewType);
+        });
+    });
+    
+    // Cargar preferencia de vista guardada
+    const savedView = localStorage.getItem('preferredView') || 'table';
+    const savedViewBtn = document.querySelector(`.btn-view[data-view="${savedView}"]`);
+    if (savedViewBtn) {
+        savedViewBtn.click();
+    }
+
+    // ===== SISTEMA DE REACCIONES =====
+    document.addEventListener('click', function(e) {
+        // Reacciones en vista de tabla
+        if (e.target.closest('.btn-reaccion')) {
+            const button = e.target.closest('.btn-reaccion');
+            const tipo = button.getAttribute('data-tipo');
+            const resultadoId = button.getAttribute('data-resultado-id');
+            toggleReaccion(resultadoId, tipo, button);
+        }
+        
+        // Reacciones en vista móvil
+        if (e.target.closest('.btn-reaction')) {
+            const button = e.target.closest('.btn-reaction');
+            const tipo = button.getAttribute('data-tipo');
+            const resultadoId = button.getAttribute('data-resultado-id');
+            toggleReaccion(resultadoId, tipo, button);
+        }
+    });
+
+    function toggleReaccion(resultadoId, tipo, button) {
+        if (!resultadoId || !tipo) {
+            showNotification('Error: Datos de reacción incompletos', 'error');
+            return;
+        }
+
+        const originalHTML = button.innerHTML;
+        
+        // Mostrar loading en el botón
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+
+        const formData = new FormData();
+        formData.append('tipo', tipo);
+        
+        fetch(`/resultados/reaccionar/${resultadoId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                actualizarInterfazReacciones(resultadoId, data);
+                showNotification(getReactionMessage(data.accion, tipo), 'success');
+            } else {
+                showNotification(data.error || 'Error al procesar la reacción', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error de conexión. Intenta nuevamente.', 'error');
+        })
+        .finally(() => {
+            // Restaurar botón
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+        });
+    }
+    
+    function getReactionMessage(accion, tipo) {
+        const reactionNames = {
+            'me_gusta': 'Me gusta',
+            'me_encanta': 'Me encanta', 
+            'muy_fuerte': 'Muy fuerte',
+            'por_poco': 'Por poco'
+        };
+        
+        const reactionName = reactionNames[tipo] || tipo;
+        
+        switch(accion) {
+            case 'agregada': return `¡${reactionName} agregado!`;
+            case 'actualizada': return `Reacción actualizada a ${reactionName}`;
+            case 'eliminada': return 'Reacción eliminada';
+            default: return 'Reacción procesada';
+        }
+    }
+    
+    function actualizarInterfazReacciones(resultadoId, data) {
+        // Actualizar en vista de tabla
+        const contadorTabla = document.querySelector(`[data-resultado-id="${resultadoId}"] .reacciones-total`);
+        if (contadorTabla) {
+            contadorTabla.textContent = data.total_reacciones;
+        }
+        
+        // Actualizar en vista móvil
+        const contadorMovil = document.querySelector(`.result-card-public[data-resultado-id="${resultadoId}"] .reaction-count .count`);
+        if (contadorMovil) {
+            contadorMovil.textContent = data.total_reacciones;
+        }
+        
+        // Actualizar en vista grid
+        const contadorGrid = document.querySelector(`.grid-card[data-resultado-id="${resultadoId}"] .grid-reactions .reaction-count`);
+        if (contadorGrid) {
+            contadorGrid.textContent = data.total_reacciones;
+        }
+        
+        // Actualizar estado de botones en tabla
+        document.querySelectorAll(`[data-resultado-id="${resultadoId}"] .btn-reaccion`).forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        if (data.tipo_reaccion_usuario) {
+            const botonActivo = document.querySelector(`[data-resultado-id="${resultadoId}"] .btn-reaccion[data-tipo="${data.tipo_reaccion_usuario}"]`);
+            if (botonActivo) {
+                botonActivo.classList.add('active');
+            }
+        }
+        
+        // Actualizar estado de botones en móvil
+        document.querySelectorAll(`.result-card-public[data-resultado-id="${resultadoId}"] .btn-reaction`).forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        if (data.tipo_reaccion_usuario) {
+            const botonActivoMovil = document.querySelector(`.result-card-public[data-resultado-id="${resultadoId}"] .btn-reaction[data-tipo="${data.tipo_reaccion_usuario}"]`);
+            if (botonActivoMovil) {
+                botonActivoMovil.classList.add('active');
+            }
+        }
+    }
+
+    // ===== SISTEMA DE COMENTARIOS =====
+    document.addEventListener('click', function(e) {
+        // Abrir/cerrar comentarios en tabla
+        if (e.target.closest('.btn-comentar')) {
+            const button = e.target.closest('.btn-comentar');
+            const resultadoId = button.getAttribute('data-resultado-id');
+            const usuario = button.getAttribute('data-usuario');
+            toggleComentarios(resultadoId, usuario);
+        }
+        
+        // Abrir/cerrar comentarios en móvil
+        if (e.target.closest('.btn-comment-mobile')) {
+            const button = e.target.closest('.btn-comment-mobile');
+            const resultadoId = button.getAttribute('data-resultado-id');
+            const usuario = button.getAttribute('data-usuario');
+            toggleComentariosMobile(resultadoId, usuario);
+        }
+        
+        // Cerrar comentarios en tabla
+        if (e.target.closest('.btn-cerrar-comentarios')) {
+            const button = e.target.closest('.btn-cerrar-comentarios');
+            const resultadoId = button.getAttribute('data-resultado-id');
+            cerrarComentarios(resultadoId);
+        }
+        
+        // Cerrar comentarios en móvil
+        if (e.target.closest('.btn-close-comments')) {
+            const button = e.target.closest('.btn-close-comments');
+            const resultadoId = button.getAttribute('data-resultado-id');
+            cerrarComentariosMobile(resultadoId);
+        }
+        
+        // Eliminar comentario
+        if (e.target.closest('.btn-eliminar-comentario')) {
+            const button = e.target.closest('.btn-eliminar-comentario');
+            const comentarioId = button.getAttribute('data-comentario-id');
+            eliminarComentario(comentarioId);
+        }
+    });
+    
+    // Envío de formularios de comentarios
+    document.addEventListener('submit', function(e) {
+        if (e.target.closest('.form-comentario')) {
+            e.preventDefault();
+            const form = e.target.closest('.form-comentario');
+            const resultadoId = form.getAttribute('data-resultado-id');
+            agregarComentario(resultadoId, form);
+        }
+        
+        if (e.target.closest('.form-comment-mobile')) {
+            e.preventDefault();
+            const form = e.target.closest('.form-comment-mobile');
+            const resultadoId = form.getAttribute('data-resultado-id');
+            agregarComentarioMobile(resultadoId, form);
+        }
+    });
+
+    function toggleComentarios(resultadoId, usuario) {
+        const filaComentarios = document.getElementById(`comentarios-${resultadoId}`);
+        const todasLasFilas = document.querySelectorAll('.comentarios-row');
+        
+        // Cerrar todas las demás filas de comentarios
+        todasLasFilas.forEach(fila => {
+            if (fila.id !== `comentarios-${resultadoId}`) {
+                fila.style.display = 'none';
+            }
+        });
+        
+        // Alternar la fila actual
+        if (filaComentarios.style.display === 'none') {
+            filaComentarios.style.display = 'table-row';
+            // Scroll suave a la sección
+            filaComentarios.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Enfocar el textarea
+            const textarea = filaComentarios.querySelector('textarea');
+            if (textarea) {
+                setTimeout(() => textarea.focus(), 300);
+            }
+        } else {
+            filaComentarios.style.display = 'none';
+        }
+    }
+    
+    function toggleComentariosMobile(resultadoId, usuario) {
+        const comentariosContainer = document.getElementById(`comments-mobile-${resultadoId}`);
+        const todosLosContainers = document.querySelectorAll('.comments-container-mobile');
+        
+        // Cerrar todos los demás contenedores
+        todosLosContainers.forEach(container => {
+            if (container.id !== `comments-mobile-${resultadoId}`) {
+                container.style.display = 'none';
+            }
+        });
+        
+        // Alternar el contenedor actual
+        if (comentariosContainer.style.display === 'none') {
+            comentariosContainer.style.display = 'block';
+            // Scroll suave
+            comentariosContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Enfocar el textarea
+            const textarea = comentariosContainer.querySelector('textarea');
+            if (textarea) {
+                setTimeout(() => textarea.focus(), 300);
+            }
+        } else {
+            comentariosContainer.style.display = 'none';
+        }
+    }
+    
+    function cerrarComentarios(resultadoId) {
+        const filaComentarios = document.getElementById(`comentarios-${resultadoId}`);
+        filaComentarios.style.display = 'none';
+    }
+    
+    function cerrarComentariosMobile(resultadoId) {
+        const comentariosContainer = document.getElementById(`comments-mobile-${resultadoId}`);
+        comentariosContainer.style.display = 'none';
+    }
+    
+    function agregarComentario(resultadoId, form) {
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalHTML = submitBtn.innerHTML;
+        
+        // Mostrar loading
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publicando...';
+        submitBtn.disabled = true;
+        
+        fetch(`/resultados/comentar/${resultadoId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Limpiar formulario
+                form.reset();
+                
+                // Agregar comentario a la lista
+                agregarComentarioALista(resultadoId, data.comentario, 'desktop');
+                
+                // Actualizar contador de comentarios
+                actualizarContadorComentarios(resultadoId);
+                
+                showNotification('¡Comentario publicado!', 'success');
+            } else {
+                showNotification(data.errors?.texto?.[0] || 'Error al publicar el comentario', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error de conexión. Intenta nuevamente.', 'error');
+        })
+        .finally(() => {
+            // Restaurar botón
+            submitBtn.innerHTML = originalHTML;
+            submitBtn.disabled = false;
+        });
+    }
+    
+    function agregarComentarioMobile(resultadoId, form) {
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalHTML = submitBtn.innerHTML;
+        
+        // Mostrar loading
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publicando...';
+        submitBtn.disabled = true;
+        
+        fetch(`/resultados/comentar/${resultadoId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Limpiar formulario
+                form.reset();
+                
+                // Agregar comentario a la lista
+                agregarComentarioALista(resultadoId, data.comentario, 'mobile');
+                
+                // Actualizar contador de comentarios
+                actualizarContadorComentarios(resultadoId);
+                
+                showNotification('¡Comentario publicado!', 'success');
+            } else {
+                showNotification(data.errors?.texto?.[0] || 'Error al publicar el comentario', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error de conexión. Intenta nuevamente.', 'error');
+        })
+        .finally(() => {
+            // Restaurar botón
+            submitBtn.innerHTML = originalHTML;
+            submitBtn.disabled = false;
+        });
+    }
+    
+    function agregarComentarioALista(resultadoId, comentario, tipo) {
+        let lista, sinComentarios;
+        
+        if (tipo === 'desktop') {
+            lista = document.getElementById(`lista-comentarios-${resultadoId}`);
+            sinComentarios = lista.querySelector('.sin-comentarios');
+        } else {
+            lista = document.getElementById(`comments-list-${resultadoId}`);
+            sinComentarios = lista.querySelector('.no-comments-mobile');
+        }
+        
+        // Remover mensaje de "sin comentarios" si existe
+        if (sinComentarios) {
+            sinComentarios.remove();
+        }
+        
+        // Crear elemento de comentario
+        const comentarioDiv = document.createElement('div');
+        if (tipo === 'desktop') {
+            comentarioDiv.className = 'comentario-item';
+            comentarioDiv.id = `comentario-${comentario.id}`;
+            comentarioDiv.innerHTML = `
+                <div class="comentario-header">
+                    <strong>${comentario.nombre_completo}</strong>
+                    <span class="comentario-fecha">${comentario.fecha_creacion}</span>
+                    <button class="btn-eliminar-comentario" 
+                            data-comentario-id="${comentario.id}"
+                            title="Eliminar comentario">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="comentario-texto">
+                    ${comentario.texto}
+                </div>
+            `;
+        } else {
+            comentarioDiv.className = 'comment-item-mobile';
+            comentarioDiv.id = `comment-${comentario.id}`;
+            comentarioDiv.innerHTML = `
+                <div class="comment-header-mobile">
+                    <strong>${comentario.nombre_completo}</strong>
+                    <span class="comment-date">${comentario.fecha_creacion}</span>
+                    <button class="btn-delete-comment" 
+                            data-comentario-id="${comentario.id}"
+                            title="Eliminar comentario">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="comment-text-mobile">
+                    ${comentario.texto}
+                </div>
+            `;
+        }
+        
+        // Agregar evento al botón de eliminar
+        const deleteBtn = comentarioDiv.querySelector('.btn-eliminar-comentario, .btn-delete-comment');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                eliminarComentario(comentario.id);
+            });
+        }
+        
+        // Agregar al inicio de la lista
+        lista.insertBefore(comentarioDiv, lista.firstChild);
+    }
+    
+    function eliminarComentario(comentarioId) {
+        if (!confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
+            return;
+        }
+        
+        showLoading();
+        
+        fetch(`/resultados/comentario/eliminar/${comentarioId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remover comentario de todas las vistas
+                const comentarioDesktop = document.getElementById(`comentario-${comentarioId}`);
+                if (comentarioDesktop) comentarioDesktop.remove();
+                
+                const comentarioMobile = document.getElementById(`comment-${comentarioId}`);
+                if (comentarioMobile) comentarioMobile.remove();
+                
+                // Actualizar contador de comentarios
+                const resultadoId = comentarioDesktop?.closest('.comentarios-row')?.id?.replace('comentarios-', '') || 
+                                  comentarioMobile?.closest('.comments-container-mobile')?.id?.replace('comments-mobile-', '');
+                if (resultadoId) {
+                    actualizarContadorComentarios(resultadoId);
+                }
+                
+                showNotification('Comentario eliminado', 'success');
+            } else {
+                showNotification(data.error || 'Error al eliminar el comentario', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error de conexión', 'error');
+        })
+        .finally(() => {
+            hideLoading();
+        });
+    }
+    
+    function actualizarContadorComentarios(resultadoId) {
+        // Actualizar en vista de tabla
+        const listaDesktop = document.getElementById(`lista-comentarios-${resultadoId}`);
+        const totalComentariosDesktop = listaDesktop ? listaDesktop.querySelectorAll('.comentario-item').length : 0;
+        
+        const contadorDesktop = document.querySelector(`[data-resultado-id="${resultadoId}"] .comentarios-total`);
+        if (contadorDesktop) {
+            contadorDesktop.textContent = totalComentariosDesktop;
+        }
+        
+        // Actualizar en vista móvil
+        const listaMobile = document.getElementById(`comments-list-${resultadoId}`);
+        const totalComentariosMobile = listaMobile ? listaMobile.querySelectorAll('.comment-item-mobile').length : 0;
+        
+        const contadorMobile = document.querySelector(`.result-card-public[data-resultado-id="${resultadoId}"] .comment-count .count`);
+        if (contadorMobile) {
+            contadorMobile.textContent = totalComentariosMobile;
+        }
+        
+        // Actualizar en vista grid
+        const contadorGrid = document.querySelector(`.grid-card[data-resultado-id="${resultadoId}"] .grid-comments .comment-count`);
+        if (contadorGrid) {
+            contadorGrid.textContent = totalComentariosDesktop;
+        }
+        
+        // Si no hay comentarios, mostrar mensaje
+        if (totalComentariosDesktop === 0 && listaDesktop) {
+            const sinComentarios = document.createElement('div');
+            sinComentarios.className = 'sin-comentarios';
+            sinComentarios.innerHTML = '<p>No hay comentarios aún. ¡Sé el primero en comentar!</p>';
+            listaDesktop.appendChild(sinComentarios);
+        }
+        
+        if (totalComentariosMobile === 0 && listaMobile) {
+            const noCommentsMobile = document.createElement('div');
+            noCommentsMobile.className = 'no-comments-mobile';
+            noCommentsMobile.innerHTML = '<p>No hay comentarios aún. ¡Sé el primero en comentar!</p>';
+            listaMobile.appendChild(noCommentsMobile);
+        }
+    }
+
+    // ===== MODAL DE NOTAS =====
+    const modal = document.getElementById('modal-notas');
+    const closeModal = document.querySelector('.close-modal');
+    const notasCompletas = document.getElementById('notas-completas');
+    const modalTitulo = document.getElementById('modal-titulo');
+    const modalFecha = document.getElementById('modal-fecha');
+    const modalCategoria = document.getElementById('modal-categoria');
+    const modalUsuario = document.getElementById('modal-usuario');
+    
+    // Función para abrir modal desde cualquier vista
+    function abrirModalNotas(notas, fecha, categoria, usuario) {
+        notasCompletas.textContent = notas;
+        modalFecha.textContent = 'Fecha: ' + fecha;
+        modalCategoria.textContent = 'Categoría: ' + categoria;
+        modalUsuario.textContent = 'Usuario: ' + usuario;
+        modalTitulo.textContent = 'Notas del WOD - ' + fecha;
+        
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Event listeners para botones de notas
+    document.addEventListener('click', function(e) {
+        // Botones en tabla
+        if (e.target.closest('.btn-notas-icon')) {
+            const button = e.target.closest('.btn-notas-icon');
+            const notas = button.getAttribute('data-notas');
+            const fecha = button.getAttribute('data-fecha');
+            const categoria = button.getAttribute('data-categoria');
+            const usuario = button.getAttribute('data-usuario');
+            abrirModalNotas(notas, fecha, categoria, usuario);
+        }
+        
+        // Botones en móvil
+        if (e.target.closest('.btn-notas-mobile')) {
+            const button = e.target.closest('.btn-notas-mobile');
+            const notas = button.getAttribute('data-notas');
+            const fecha = button.getAttribute('data-fecha');
+            const categoria = button.getAttribute('data-categoria');
+            const usuario = button.getAttribute('data-usuario');
+            abrirModalNotas(notas, fecha, categoria, usuario);
+        }
+    });
+    
+    // Cerrar modal
+    function cerrarModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    
+    closeModal.addEventListener('click', cerrarModal);
+    
+    // Cerrar modal al hacer clic fuera del contenido
+    modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            cerrarModal();
+        }
+    });
+    
+    // Cerrar modal con tecla ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modal.style.display === 'block') {
+            cerrarModal();
+        }
+    });
+
+    // ===== MEJORAS DE USABILIDAD =====
+    
+    // Fecha máxima en filtros (hoy)
+    const fechaInput = document.getElementById('fecha');
+    if (fechaInput) {
+        const today = new Date().toISOString().split('T')[0];
+        fechaInput.max = today;
+        
+        // Placeholder mejorado para móviles
+        if (window.innerWidth <= 768) {
+            fechaInput.placeholder = 'Selecciona fecha';
+        }
+    }
+    
+    // Scroll suave para enlaces internos
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Prevenir envíos duplicados de formularios
+    let formSubmitting = false;
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (formSubmitting) {
+                e.preventDefault();
+                return;
+            }
+            formSubmitting = true;
+            
+            // Resetear después de 3 segundos por si hay error
+            setTimeout(() => {
+                formSubmitting = false;
+            }, 3000);
+        });
+    });
+    
+    // Animación para elementos al hacer scroll
+    function initScrollAnimations() {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observar tarjetas y elementos animables
+        document.querySelectorAll('.result-card-public, .summary-card, .grid-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    }
+    
+    // Inicializar animaciones cuando la página carga
+    setTimeout(initScrollAnimations, 100);
+
+    // ===== FUNCIONES UTILITARIAS =====
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Función para formatear números
+    function formatNumber(num) {
+        return new Intl.NumberFormat('es-ES').format(num);
+    }
+    
+    // Función para capitalizar texto
+    function capitalize(text) {
+        return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+    }
+
+    // ===== INICIALIZACIÓN FINAL =====
+    console.log('Caribe WOD Tracker - Resultados Públicos inicializado correctamente');
+    
+    // Mostrar notificación de bienvenida si es la primera visita
+    const firstVisit = !localStorage.getItem('hasVisitedPublicResults');
+    if (firstVisit) {
+        setTimeout(() => {
+            showNotification('¡Bienvenido a los resultados públicos! Filtra y busca entre los WODs de la comunidad.', 'info', 5000);
+            localStorage.setItem('hasVisitedPublicResults', 'true');
+        }, 1000);
+    }
+});
+
+// ===== ANIMACIONES CSS ADICIONALES =====
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Mejoras para accesibilidad */
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+    
+    /* Enfoque visible para accesibilidad */
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+        outline: 2px solid #FF8C00;
+        outline-offset: 2px;
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

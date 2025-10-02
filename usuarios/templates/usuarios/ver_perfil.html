@@ -1,221 +1,528 @@
 {% extends "base.html" %} 
-{% block title %}
-Mi Perfil - {{ user.username }}
-{%endblock %}
+{% block title %}Mi Perfil - {{ user.username }}{% endblock %}
+
 {% block content %}
 <div class="profile-container">
-  <div class="profile-header">
-    <h2 class="profile-title">
-      <i class="fas fa-user-circle"></i> {{ user.username }}
-    </h2>
-    <a href="{% url 'editar_perfil' %}" class="btn btn-primary">
-      <i class="fas fa-edit"></i> Editar Perfil
-    </a>
-  </div>
-
-  <div class="profile-grid">
-    <div class="profile-section">
-      <h3 class="section-title">
-        <i class="fas fa-info-circle"></i> Información Personal
-      </h3>
-      <div class="info-grid">
-        <div class="info-item">
-          <span class="info-label">Email:</span>
-          <span class="info-value">{{ user.email }}</span>
+    <div class="profile-header">
+        <div class="profile-info">
+            <h1 class="profile-title">
+                <i class="fas fa-user-circle" aria-hidden="true"></i> 
+                {{ user.username }}
+            </h1>
+            <p class="profile-email">{{ user.email }}</p>
         </div>
-        <div class="info-item">
-          <span class="info-label">Nombre Completo:</span>
-          <span class="info-value"
-            >{{ perfil.nombre_completo|default:"-" }}</span
-          >
-        </div>
-        <div class="info-item">
-          <span class="info-label">Fecha Nacimiento:</span>
-          <span class="info-value"
-            >{{ perfil.fecha_nacimiento|date:"d/m/Y"|default:"-" }}</span
-          >
-        </div>
-      </div>
+        <a href="{% url 'editar_perfil' %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Editar Perfil
+        </a>
     </div>
 
-    <div class="profile-section">
-      <h3 class="section-title">
-        <i class="fas fa-trophy"></i> Récords Personales
-      </h3>
-      <div class="records-grid">
-        <div class="record-card">
-          <div class="record-icon">
-            <i class="fas fa-weight-hanging"></i>
-          </div>
-          <div class="record-info">
-            <span class="record-label">Snatch</span>
-            <span class="record-value">
-              {% if perfil.rm_snatch %} {{ perfil.rm_snatch }} kg {% else %} N/A
-              {% endif %}
-            </span>
-          </div>
+    <div class="profile-grid">
+        <div class="profile-section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle" aria-hidden="true"></i> Información Personal
+            </h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="fas fa-envelope"></i> Email:
+                    </span>
+                    <span class="info-value">{{ user.email }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="fas fa-user"></i> Nombre Completo:
+                    </span>
+                    <span class="info-value">{{ perfil.nombre_completo|default:"No especificado" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="fas fa-birthday-cake"></i> Fecha Nacimiento:
+                    </span>
+                    <span class="info-value">
+                        {% if perfil.fecha_nacimiento %}
+                            {{ perfil.fecha_nacimiento|date:"d/m/Y" }}
+                            <small class="age">({{ perfil.edad }} años)</small>
+                        {% else %}
+                            No especificada
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="fas fa-id-card"></i> Identificación:
+                    </span>
+                    <span class="info-value">{{ perfil.numero_identificacion|default:"No especificada" }}</span>
+                </div>
+            </div>
         </div>
-        <div class="record-card">
-          <div class="record-icon">
-            <i class="fas fa-weight-hanging"></i>
-          </div>
-          <div class="record-info">
-            <span class="record-label">Clean</span>
-            <span class="record-value">
-              {% if perfil.rm_clean %} {{ perfil.rm_clean }} kg {% else %} N/A
-              {% endif %}
-            </span>
-          </div>
+
+        <div class="profile-section">
+            <h2 class="section-title">
+                <i class="fas fa-trophy" aria-hidden="true"></i> Récords Personales
+            </h2>
+            <div class="records-grid">
+                <div class="record-card">
+                    <div class="record-icon">
+                        <i class="fas fa-weight-hanging" aria-hidden="true"></i>
+                    </div>
+                    <div class="record-info">
+                        <span class="record-label">Snatch</span>
+                        <span class="record-value">
+                            {% if perfil.rm_snatch %} 
+                                {{ perfil.rm_snatch }} kg
+                            {% else %} 
+                                <span class="no-data">N/A</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="record-card">
+                    <div class="record-icon">
+                        <i class="fas fa-weight-hanging" aria-hidden="true"></i>
+                    </div>
+                    <div class="record-info">
+                        <span class="record-label">Clean</span>
+                        <span class="record-value">
+                            {% if perfil.rm_clean %} 
+                                {{ perfil.rm_clean }} kg
+                            {% else %} 
+                                <span class="no-data">N/A</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="record-card">
+                    <div class="record-icon">
+                        <i class="fas fa-weight-hanging" aria-hidden="true"></i>
+                    </div>
+                    <div class="record-info">
+                        <span class="record-label">DeadLift</span>
+                        <span class="record-value">
+                            {% if perfil.rm_deadlift %} 
+                                {{ perfil.rm_deadlift }} kg
+                            {% else %} 
+                                <span class="no-data">N/A</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="record-card">
+                    <div class="record-icon">
+                        <i class="fas fa-weight-hanging" aria-hidden="true"></i>
+                    </div>
+                    <div class="record-info">
+                        <span class="record-label">Front Squat</span>
+                        <span class="record-value">
+                            {% if perfil.rm_front_squat %} 
+                                {{ perfil.rm_front_squat }} kg
+                            {% else %} 
+                                <span class="no-data">N/A</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="record-card">
+                    <div class="record-icon">
+                        <i class="fas fa-weight-hanging" aria-hidden="true"></i>
+                    </div>
+                    <div class="record-info">
+                        <span class="record-label">Back Squat</span>
+                        <span class="record-value">
+                            {% if perfil.rm_back_squat %} 
+                                {{ perfil.rm_back_squat }} kg
+                            {% else %} 
+                                <span class="no-data">N/A</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="record-card">
+                    <div class="record-icon">
+                        <i class="fas fa-weight-hanging" aria-hidden="true"></i>
+                    </div>
+                    <div class="record-info">
+                        <span class="record-label">Press Banca</span>
+                        <span class="record-value">
+                            {% if perfil.rm_press_banca %} 
+                                {{ perfil.rm_press_banca }} kg
+                            {% else %} 
+                                <span class="no-data">N/A</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="record-card">
-          <div class="record-icon">
-            <i class="fas fa-weight-hanging"></i>
-          </div>
-          <div class="record-info">
-            <span class="record-label">DeadLift</span>
-            <span class="record-value">
-              {% if perfil.rm_deadlift %} {{ perfil.rm_deadlift }} kg 
-              {% else %}
-              N/A {% endif %}
-            </span>
-          </div>
-        </div>
-        <div class="record-card">
-          <div class="record-icon">
-            <i class="fas fa-weight-hanging"></i>
-          </div>
-          <div class="record-info">
-            <span class="record-label">Front Squat</span>
-            <span class="record-value">
-              {% if perfil.rm_front_squat %} {{ perfil.rm_front_squat }} kg 
-              {% else %} N/A {% endif %}
-            </span>
-          </div>
-        </div>
-        <div class="record-card">
-          <div class="record-icon">
-            <i class="fas fa-weight-hanging"></i>
-          </div>
-          <div class="record-info">
-            <span class="record-label">Back Squat</span>
-            <span class="record-value">
-              {% if perfil.rm_back_squat %} {{ perfil.rm_back_squat }} kg 
-              {% else %} N/A {% endif %}
-            </span>
-          </div>
-        </div>
-        <div class="record-card">
-          <div class="record-icon">
-            <i class="fas fa-weight-hanging"></i>
-          </div>
-          <div class="record-info">
-            <span class="record-label">Press Banca</span>
-            <span class="record-value">
-              {% if perfil.rm_press_banca %} {{ perfil.rm_press_banca }} kg 
-              {% else %} N/A {% endif %}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
 </div>
+
 <style>
-  .profile-container {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-
-  .profile-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-  }
-
-  .profile-title {
-    color: #2c3e50;
-    margin: 0;
-  }
-
-  .profile-grid {
-    display: grid;
-    gap: 2rem;
-    grid-template-columns: 1fr 2fr;
-  }
-
-  .profile-section {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  }
-
-  .section-title {
-    color: #3498db;
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-  }
-
-  .info-grid {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .info-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.8rem;
-    background: #f8f9fa;
-    border-radius: 6px;
-  }
-
-  .info-label {
-    font-weight: 600;
-    color: #2c3e50;
-  }
-
-  .info-value {
-    color: #666;
-  }
-
-  .records-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-  }
-
-  .record-card {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    gap: 1rem;
-  }
-
-  .record-icon {
-    font-size: 1.5rem;
-    color: #e74c3c;
-  }
-
-  .record-label {
-    display: block;
-    font-size: 0.9rem;
-    color: #666;
-  }
-
-  .record-value {
-    display: block;
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 1.1rem;
-  }
-
-  @media (max-width: 768px) {
-    .profile-grid {
-      grid-template-columns: 1fr;
+    .profile-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        animation: fadeIn 0.6s ease-out;
     }
-  }
+
+    .profile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid rgba(255, 140, 0, 0.15);
+    }
+
+    .profile-info {
+        flex: 1;
+    }
+
+    .profile-title {
+        color: #333;
+        margin: 0 0 0.5rem;
+        font-size: 2.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        font-weight: 700;
+    }
+
+    .profile-email {
+        color: #666;
+        font-size: 1.1rem;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .profile-grid {
+        display: grid;
+        gap: 2.5rem;
+        grid-template-columns: 1fr 2fr;
+    }
+
+    .profile-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .profile-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .section-title {
+        color: #333;
+        margin-top: 0;
+        margin-bottom: 1.8rem;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        position: relative;
+        padding-bottom: 0.8rem;
+        font-weight: 600;
+    }
+
+    .section-title:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(to right, #FFA500, #FF8C00);
+        border-radius: 2px;
+    }
+
+    .info-grid {
+        display: grid;
+        gap: 1.2rem;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.2rem 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .info-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        background: #fff;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-value {
+        color: #555;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .age {
+        color: #888;
+        font-size: 0.85rem;
+        font-weight: normal;
+    }
+
+    .records-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .record-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem 1rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .record-card:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(to right, #FFA500, #FF8C00);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease;
+    }
+
+    .record-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        background: #fff;
+    }
+
+    .record-card:hover:before {
+        transform: scaleX(1);
+    }
+
+    .record-icon {
+        font-size: 2rem;
+        color: #FF8C00;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+        background: rgba(255, 140, 0, 0.1);
+        padding: 0.8rem;
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .record-card:hover .record-icon {
+        transform: scale(1.1);
+    }
+
+    .record-label {
+        display: block;
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .record-value {
+        display: block;
+        font-weight: 700;
+        color: #FF4500;
+        font-size: 1.4rem;
+        transition: all 0.3s ease;
+        line-height: 1.2;
+    }
+
+    .no-data {
+        color: #999;
+        font-size: 0.9rem;
+        font-weight: 500;
+        font-style: italic;
+    }
+
+    .record-card:hover .record-value {
+        color: #e65100;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #FFA500, #FF8C00);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, #FF8C00, #FF4500);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 968px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .records-grid {
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 1.5rem 1rem;
+        }
+
+        .profile-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .profile-title {
+            font-size: 1.8rem;
+        }
+
+        .profile-section {
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+        }
+
+        .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+            text-align: left;
+        }
+
+        .info-value {
+            text-align: left;
+        }
+
+        .records-grid {
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .record-card {
+            padding: 1.2rem 0.8rem;
+        }
+
+        .record-icon {
+            font-size: 1.8rem;
+            width: 60px;
+            height: 60px;
+            padding: 0.7rem;
+        }
+
+        .record-value {
+            font-size: 1.2rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .profile-container {
+            padding: 1rem 0.8rem;
+        }
+
+        .profile-section {
+            padding: 1.2rem;
+            border-radius: 8px;
+        }
+
+        .profile-title {
+            font-size: 1.5rem;
+        }
+
+        .records-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .record-card {
+            padding: 1rem 0.5rem;
+        }
+
+        .record-label {
+            font-size: 0.8rem;
+        }
+
+        .record-value {
+            font-size: 1.1rem;
+        }
+    }
+
+    /* Mejoras de accesibilidad */
+    @media (prefers-reduced-motion: reduce) {
+        .profile-container,
+        .profile-section,
+        .record-card,
+        .info-item {
+            animation: none;
+            transition: none;
+        }
+    }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animación escalonada para las tarjetas de records
+        const recordCards = document.querySelectorAll('.record-card');
+        recordCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.style.animation = 'fadeInUp 0.6s ease-out both';
+        });
+
+        // Efecto de aparición para los elementos de información
+        const infoItems = document.querySelectorAll('.info-item');
+        infoItems.forEach((item, index) => {
+            item.style.animationDelay = `${index * 0.05}s`;
+            item.style.animation = 'fadeInUp 0.5s ease-out both';
+        });
+    });
+</script>
 {% endblock %}

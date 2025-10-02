@@ -10,15 +10,25 @@
     />
     <title>{% block title %}Fitness App{% endblock %}</title>
     <style>
+          :root {
+            --color-sunrise-light: #FFA500;  /* Más naranja */
+            --color-sunrise-medium: #FF8C00;
+            --color-sunrise-dark: #FF4500;
+            --color-text-dark: #333;
+            --color-text-light: #fff;
+            --container-max-width: 1400px; /* Aumentado de 960px a 1400px */
+            --container-padding: 2rem;
+          }
+          
           body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
-            color: #333;
+            color: var(--color-text-dark);
           }
           nav {
-            background: linear-gradient(135deg, #2c3e50, #3498db);
+            background: linear-gradient(135deg, var(--color-sunrise-light), var(--color-sunrise-medium));
             padding: 2rem 2rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             position: relative;
@@ -40,7 +50,7 @@
           }
 
           nav ul li a {
-            color: white;
+            color: var(--color-text-dark);
             text-decoration: none;
             padding: 0.5rem 1rem;
             transition: all 0.3s ease;
@@ -48,10 +58,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            font-weight: 600;
           }
 
           nav ul li a:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
           }
 
@@ -62,7 +73,7 @@
             left: 0;
             width: 0;
             height: 2px;
-            background: #e74c3c;
+            background: var(--color-sunrise-dark);
             transition: width 0.3s ease;
           }
 
@@ -111,6 +122,8 @@
             text-align: center;
             display: block;
             margin-top: -5px;
+            color: var(--color-text-dark);
+            font-weight: 700;
           }
 
           .logo-container {
@@ -146,7 +159,7 @@
           /* Estilos para el menú hamburguesa */
           .hamburger {
             display: none;
-            color: white;
+            color: var(--color-text-dark);
             font-size: 1.5rem;
             padding: 0.5rem;
             cursor: pointer;
@@ -196,7 +209,7 @@
               top: 100%;
               left: 0;
               width: 100%;
-              background: linear-gradient(135deg, #2c3e50, #3498db);
+              background: linear-gradient(135deg, var(--color-sunrise-yellow), var(--color-sunrise-orange));
               max-height: 0;
               transition: max-height 0.3s ease-out;
               z-index: 1000;
@@ -216,8 +229,8 @@
               font-weight: 600; /* Semi-bold */
               font-size: 1rem; !important;
               letter-spacing: 1.5px;
-              color: white;
-              text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+              color: var(--color-text-dark);
+              text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             }
 
             .logo-mobile-container .logo-vertical {
@@ -265,14 +278,14 @@
 
           /* Estilos del footer */
       footer {
-        background: linear-gradient(135deg, #2c3e50, #3498db);
-        color: white;
+        background: linear-gradient(135deg, var(--color-sunrise-light), var(--color-sunrise-medium));
+        color: var(--color-text-dark);
         padding: 1rem 1rem;
         margin-top: auto;
       }
 
       .footer-content {
-        max-width: 1200px;
+        max-width: var(--container-max-width);
         margin: 0 auto;
         display: flex;
         justify-content: space-between;
@@ -287,10 +300,11 @@
       }
 
       .footer-section h3 {
-        color: #e74c3c;
+        color: var(--color-sunrise-dark);
         text-align: center;
         margin-bottom: 1rem;
         font-size: 1.2rem;
+        font-weight: 700;
       }
 
       .footer-section h5 {
@@ -298,6 +312,8 @@
         font-size: 1rem;
         margin: 0;
         padding: 0;
+        color: var(--color-sunrise-dark);
+        font-weight: 600;
       }
 
       .footer-section h6 {
@@ -305,6 +321,7 @@
         font-size: 0.7rem;
         margin: 0;
         padding: 0;
+        color: var(--color-text-dark);
       }
 
       .footer-section p {
@@ -312,6 +329,7 @@
         line-height: 1;
         display: flex;
         justify-content: center;
+        color: var(--color-text-dark);
       }
 
       .social-links {
@@ -322,18 +340,19 @@
       }
 
       .social-links a {
-        color: white;
+        color: var(--color-sunrise-dark);
         font-size: 1.5rem;
         transition: transform 0.3s ease;
       }
 
       .social-links a:hover {
         transform: translateY(-3px);
-        color: #e74c3c;
+        color: var(--color-text-dark);
       }
 
       .fa-phone-alt {
         margin-right: 0.5rem;
+        color: var(--color-sunrise-dark);
       }
 
       @media (max-width: 768px) {
@@ -347,14 +366,40 @@
         }
       }
 
+          /* CONTENEDOR PRINCIPAL MODIFICADO */
           .container {
-            max-width: 960px;
+            max-width: var(--container-max-width);
             margin: 2rem auto;
-            padding: 1rem;
+            padding: var(--container-padding);
             background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            min-height: 60vh;
           }
+
+          /* Mejoras responsive para el contenedor */
+          @media (max-width: 1400px) {
+            .container {
+              margin: 2rem 2rem;
+            }
+          }
+
+          @media (max-width: 768px) {
+            .container {
+              margin: 1rem 1rem;
+              padding: 1.5rem;
+              border-radius: 8px;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .container {
+              margin: 0.5rem 0.5rem;
+              padding: 1rem;
+              border-radius: 6px;
+            }
+          }
+
           .messages {
             list-style: none;
             padding: 0;
@@ -402,16 +447,20 @@
             border-radius: 4px;
           }
           form button {
-            background-color: #5cb85c;
-            color: white;
+            background: linear-gradient(135deg, var(--color-sunrise-yellow), var(--color-sunrise-orange));
+            color: var(--color-text-dark);
             padding: 10px 15px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
           }
           form button:hover {
-            background-color: #4cae4c;
+            background: linear-gradient(135deg, var(--color-sunrise-orange), var(--color-sunrise-dark));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           }
     </style>
   </head>
@@ -455,9 +504,24 @@
           </li>
           {% if user.is_authenticated %}
           <li>
-            <a href="{% url 'mostrar_entrenamiento' %}"
-              ><i class="fas fa-running"></i> Entrenamiento</a
-            >
+              <a href="{% url 'mostrar_entrenamiento' %}"
+                  ><i class="fas fa-running"></i> Entrenamiento</a
+              >
+          </li>
+           <li>
+              <a href="{% url 'calculadora_porcentajes' %}"
+                  ><i class="fas fa-calculator"></i> Calculadora %</a
+              >
+          </li>
+          <li>
+              <a href="{% url 'lista_resultados' %}"
+                  ><i class="fas fa-list-check"></i> Mis Resultados</a
+              >
+          </li>
+          <li>
+              <a href="{% url 'resultados_publicos' %}"
+                  ><i class="fas fa-users"></i> Resultados Públicos</a
+              >
           </li>
           {% endif %}
         </div>
@@ -535,16 +599,29 @@
         </div>
 
         <div class="footer-section redes">
-          <h3>Síguenos</h3>
-          <div class="social-links">
-            <!--<a href="#"><i class="fab fa-facebook"></i></a>-->
-            <a href="https://www.instagram.com/rikrdo_tejedor/"
-              ><i class="fab fa-instagram"></i
-            ></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-            <a href="#"><i class="fab fa-tiktok"></i></a>
-          </div>
-        </div>
+    <h3>Síguenos</h3>
+    <div class="social-links">
+        <!-- WhatsApp -->
+        <a href="https://chat.whatsapp.com/Jcfi2tspIAa6E7gchvdquf" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+        
+        <!-- Instagram -->
+        <a href="https://www.instagram.com/rikrdo_tejedor/" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-instagram"></i>
+        </a>
+        
+        <!-- YouTube -->
+        <a href="#" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-youtube"></i>
+        </a>
+        
+        <!-- TikTok -->
+        <a href="#" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-tiktok"></i>
+        </a>
+    </div>
+</div>
       </div>
     </footer>
   </body>
