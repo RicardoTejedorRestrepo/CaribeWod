@@ -182,7 +182,7 @@
             }
           }
 
-          /* Media query para móviles */
+          /* Media query para móviles - CORREGIDO */
           @media screen and (max-width: 768px) {
             .hamburger {
               display: block;
@@ -209,14 +209,18 @@
               top: 100%;
               left: 0;
               width: 100%;
-              background: linear-gradient(135deg, var(--color-sunrise-yellow), var(--color-sunrise-orange));
+              background: linear-gradient(135deg, var(--color-sunrise-light), var(--color-sunrise-medium));
+              flex-direction: column;
               max-height: 0;
+              overflow: hidden;
               transition: max-height 0.3s ease-out;
               z-index: 1000;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             }
 
             .nav-links.active {
-              max-height: 500px;
+              max-height: 1000px; /* Valor suficientemente alto */
+              overflow: visible;
             }
 
             /* Reducir tamaño del logo en móvil */
@@ -227,7 +231,7 @@
             .logo-mobile-container .logo-text {
               font-family: "Arial", sans-serif;
               font-weight: 600; /* Semi-bold */
-              font-size: 1rem; !important;
+              font-size: 1rem !important;
               letter-spacing: 1.5px;
               color: var(--color-text-dark);
               text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -237,25 +241,12 @@
               gap: 3px;
             }
 
-            .nav-links {
-              flex-direction: column;
-              width: 100%;
-              height: 0;
-              overflow: hidden;
-              padding: 0;
-            }
-
-            .nav-links.active {
-              height: auto;
-              overflow: visible;
-              padding: 1rem 0;
-            }
-
             .nav-left,
             .nav-right {
               flex-direction: column;
               gap: 0;
               width: 100%;
+              padding: 0;
             }
 
             .nav-left li,
@@ -269,6 +260,7 @@
             .nav-right li a {
               justify-content: center;
               padding: 1rem;
+              display: flex;
             }
 
             .logo-container {
@@ -447,7 +439,7 @@
             border-radius: 4px;
           }
           form button {
-            background: linear-gradient(135deg, var(--color-sunrise-yellow), var(--color-sunrise-orange));
+            background: linear-gradient(135deg, var(--color-sunrise-light), var(--color-sunrise-medium));
             color: var(--color-text-dark);
             padding: 10px 15px;
             border: none;
@@ -458,7 +450,7 @@
             transition: all 0.3s ease;
           }
           form button:hover {
-            background: linear-gradient(135deg, var(--color-sunrise-orange), var(--color-sunrise-dark));
+            background: linear-gradient(135deg, var(--color-sunrise-medium), var(--color-sunrise-dark));
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           }

@@ -24,15 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-oeeimb@9x=7+a)=bg5rlho=43=^y612f+_b4bmkq5!ao2xks%+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Debug desactivado en producción
-DEBUG = False
-#DEBUG = True
+#DEBUG = False
+DEBUG = True
 
-#ALLOWED_HOSTS = ['*']
-ALLOWED_HOSTS = [
-    'RicardoTejedor.pythonanywhere.com',
-    'www.RicardoTejedor.pythonanywhere.com'
-]
+ALLOWED_HOSTS = ['*']
+
 
 # Application definition
 
@@ -49,15 +45,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-        'django.middleware.security.SecurityMiddleware',
-        'whitenoise.middleware.WhiteNoiseMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    ]
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
 
 ROOT_URLCONF = 'caribe_wod_tracker.urls'
 
@@ -89,21 +84,6 @@ DATABASES = {
     }
 }
 
-# Configuración de base de datos MySQL para PythonAnywhere
-if 'PYTHONANYWHERE_DOMAIN' in os.environ:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'RicardoTejedor$default',
-            'USER': 'RicardoTejedor',
-            'PASSWORD': 'CaribeAdmin08*',
-            'HOST': 'RicardoTejedor.mysql.pythonanywhere-services.com',
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-                'charset': 'utf8mb4',
-            },
-        }
-    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -146,23 +126,10 @@ STATICFILES_DIRS = [
 ]
 
 # Directorio donde se recolectarán los archivos estáticos para producción
-#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_ROOT = '/home/RicardoTejedor/caribe_wod_tracker/static'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-# Configuración para archivos media (si necesitas subir archivos)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/RicardoTejedor/CaribeWod/media'
-
-# Configuración de seguridad para producción
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-
-# Configuración de WhiteNoise para archivos estáticos
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
